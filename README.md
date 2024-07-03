@@ -72,7 +72,7 @@ To work with this project, you need to have Python 3.12 installed. All the neces
 
 8. Run the code from ```main.py``` and check that everything is working as expected.
 
-# General Rules of Operation
+# 📋 General Rules of Operation
 
 1. Work in separate branches.
 2. All changes to the master branch are made through me (Daniil).
