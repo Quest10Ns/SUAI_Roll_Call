@@ -75,7 +75,7 @@ To work with this project, you need to have Python 3.12 installed. All the neces
 # General Rules of Operation
 
 1. Work in separate branches.
-2. All changes to the master branch are made through me (Daniel).
+2. All changes to the master branch are made through me (Daniil).
 3. When you start working on something, create a task in the issue and mark yourself as working on it to avoid duplication of work.
 4. Before starting work on something, check the issue to make sure that no one else is working on it.
 5. When you finish a task, don't forget to close it.
