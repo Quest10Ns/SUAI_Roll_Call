@@ -18,11 +18,16 @@ class RegisterForStudents(StatesGroup):
     initials = State()
     group = State()
 
+class RegisterUsers(StatesGroup):
+    status = State()
+
 
 @router.message(CommandStart())
-async def cmd_start(message: types.Message):
+async def cmd_start(message: types.Message, state: FSMContext):
     await rq.set_user(message.from_user.id)
-    await message.answer('Добро пожаловать в бота, кторый проверяет посещения пар в ГУАПе', reply_markup=kb.main)
+    await state.set_state(RegisterUsers.status)
+    await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.main)
+
 
 
 @router.message(Command('info'))
@@ -30,12 +35,18 @@ async def cmd_info(message: types.Message):
     await message.answer('Im Helping')
 
 
-@router.message(F.text == 'Преподаватель')
-async def teacher(message: types.Message, state: FSMContext):
-    await message.reply('Отлично, теперь необходима пройти регистрацию и подтвердить, что вы преподаватель')
-    await state.set_state(RegisterForTeachers.initials)
-    await message.answer('Введите ваше имя, фамилию и отчество')
-
+@router.message(RegisterUsers.status)
+async def register_user(message: types.Message, state: FSMContext):
+    if message.text == 'Преподаватель':
+        await message.reply('Отлично, теперь необходима пройти регистрацию и подтвердить, что вы преподаватель')
+        await state.set_state(RegisterForTeachers.initials)
+        await rq.set_user_status(message.from_user.id, 'teacher')
+        await message.answer('Введите ваше имя, фамилию и отчество')
+    elif message.text == 'Студент':
+        await message.reply('Отлично, теперь необходима пройти регистрацию')
+        await state.set_state(RegisterForStudents.initials)
+        await rq.set_user_status(message.from_user.id, 'student')
+        await message.answer('Введите ваше имя, фамилию и отчество')
 
 @router.message(RegisterForTeachers.initials)
 async def register_name_for_teacher(message: types.Message, state: FSMContext):
@@ -51,13 +62,6 @@ async def register_verification_code(message: types.Message, state: FSMContext):
     await message.answer(
         f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Код подтверждения: {data["verification_code"]}')
     await state.clear()
-
-
-@router.message(F.text == 'Студент')
-async def student(message: types.Message, state: FSMContext):
-    await message.reply('Отлично, теперь необходима пройти регистрацию')
-    await state.set_state(RegisterForStudents.initials)
-    await message.answer('Введите ваше имя, фамилию и отчество')
 
 
 @router.message(RegisterForStudents.initials)
