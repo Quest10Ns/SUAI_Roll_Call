@@ -4,3 +4,4 @@ asyncpg
 pip
 psycopg2
 SQLAlchemy
+dotenv

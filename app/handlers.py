@@ -40,12 +40,12 @@ async def register_user(message: types.Message, state: FSMContext):
     if message.text == 'Преподаватель':
         await message.reply('Отлично, теперь необходима пройти регистрацию и подтвердить, что вы преподаватель')
         await state.set_state(RegisterForTeachers.initials)
-        await rq.set_user_status(message.from_user.id, 'teacher')
+        await rq.set_user_status(message.from_user.id, message.text)
         await message.answer('Введите ваше имя, фамилию и отчество')
     elif message.text == 'Студент':
         await message.reply('Отлично, теперь необходима пройти регистрацию')
         await state.set_state(RegisterForStudents.initials)
-        await rq.set_user_status(message.from_user.id, 'student')
+        await rq.set_user_status(message.from_user.id, message.text)
         await message.answer('Введите ваше имя, фамилию и отчество')
 
 @router.message(RegisterForTeachers.initials)
