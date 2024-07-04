@@ -14,13 +14,13 @@ class Base(AsyncAttrs, DeclarativeBase):
     pass
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = 'Users'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id = mapped_column(BigInteger)
-    initials = mapped_column(String(150))
-    status = mapped_column(String(15), nullable=False)
-    group_or_department = mapped_column(String(7))
+    initials = mapped_column(String(150),nullable=True)
+    status = mapped_column(String(15), nullable=True)
+    group_or_department = mapped_column(String(7), nullable=True)
 
 async def async_main():
     async with engine.begin() as conn:

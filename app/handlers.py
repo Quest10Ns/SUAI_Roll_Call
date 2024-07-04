@@ -4,6 +4,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 import app.keyboads as kb
+import app.database.requests as rq
 
 router = Router()
 
@@ -20,7 +21,8 @@ class RegisterForStudents(StatesGroup):
 
 @router.message(CommandStart())
 async def cmd_start(message: types.Message):
-    await message.answer('Приветственный текст', reply_markup=kb.main)
+    await rq.set_user(message.from_user.id)
+    await message.answer('Добро пожаловать в бота, кторый проверяет посещения пар в ГУАПе', reply_markup=kb.main)
 
 
 @router.message(Command('info'))
