@@ -28,8 +28,6 @@ async def cmd_start(message: types.Message, state: FSMContext):
     await state.set_state(RegisterUsers.status)
     await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.main)
 
-    # сделать текст показывающий вохможность выбора, а не только приветствие
-
 @router.message(Command('info'))
 async def cmd_info(message: types.Message):
     await message.answer('Im Helping')
