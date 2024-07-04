@@ -51,6 +51,7 @@ async def register_user(message: types.Message, state: FSMContext):
 @router.message(RegisterForTeachers.initials)
 async def register_name_for_teacher(message: types.Message, state: FSMContext):
     await state.update_data(initials=message.text)
+    await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
     await state.set_state(RegisterForTeachers.verification_code)
     await message.answer('Введите код для подтверждения статуса преподавателя')
 
@@ -67,6 +68,7 @@ async def register_verification_code(message: types.Message, state: FSMContext):
 @router.message(RegisterForStudents.initials)
 async def register_name_for_student(message: types.Message, state: FSMContext):
     await state.update_data(initials=message.text)
+    await rq.set_student_initials_for_students(message.from_user.id, message.text)
     await state.set_state(RegisterForStudents.group)
     await message.answer('Введите вашу учебную группу')
 
