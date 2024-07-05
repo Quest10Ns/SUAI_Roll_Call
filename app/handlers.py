@@ -102,7 +102,7 @@ async def register_verification_code(message: types.Message, state: FSMContext):
 
 
 @router.message(RegisterForStudents.initials)
-async def register_name_for_student(message: types.Message, state: FSMContext)
+async def register_name_for_student(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
         await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
