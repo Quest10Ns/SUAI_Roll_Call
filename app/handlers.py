@@ -1,10 +1,12 @@
 import asyncio
+import os
 from aiogram import types, F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 import app.keyboads as kb
 import app.database.requests as rq
+from dotenv import load_dotenv
 
 router = Router()
 
@@ -29,6 +31,11 @@ async def cmd_start(message: types.Message, state: FSMContext):
     await state.set_state(RegisterUsers.status)
     await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.main)
 
+@router.message(F.text == 'Неверный код доступа. Видимо Вы не преподаватель')
+async def cmd_start(message: types.Message, state: FSMContext):
+    await rq.set_user(message.from_user.id)
+    await state.set_state(RegisterUsers.status)
+    await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.main)
 
 
 @router.message(Command('info'))
@@ -68,12 +75,19 @@ async def register_departmend_for_teachers(message: types.Message, state: FSMCon
 
 
 @router.message(RegisterForTeachers.verification_code)
-async def register_verification_code(message: types.Message, state: FSMContext):
-    await state.update_data(verification_code=message.text)
-    data = await state.get_data()
-    await message.answer(
-        f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
-    await state.clear()
+async def register_verification_code_first_try(message: types.Message, state: FSMContext):
+    load_dotenv()
+    if message.text == os.getenv('TEACHERS_PASSWORD'):
+        await state.update_data(verification_code=message.text)
+        data = await state.get_data()
+        await message.answer(
+            f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
+        await state.clear()
+    else:
+        await state.set_state(RegisterForTeachers.verification_code)
+        await message.answer('Неверный код доступа. Попробуйте еще раз')
+
+
 
 
 
