@@ -50,10 +50,14 @@ async def register_user(message: types.Message, state: FSMContext):
         await message.answer('Введите ваше имя, фамилию и отчество')
 @router.message(RegisterForTeachers.initials)
 async def register_name_for_teacher(message: types.Message, state: FSMContext):
-    await state.update_data(initials=message.text)
-    await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
-    await state.set_state(RegisterForTeachers.departmend)
-    await message.answer('Введите вашу кафедру')
+    if message.text == 'Назад':
+        await state.set_state(RegisterUsers.status)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
+    else:
+        await state.update_data(initials=message.text)
+        await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
+        await state.set_state(RegisterForTeachers.departmend)
+        await message.answer('Введите вашу кафедру')
 
 @router.message(RegisterForTeachers.departmend)
 async def register_departmend_for_teachers(message: types.Message, state: FSMContext):
