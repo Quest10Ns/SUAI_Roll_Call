@@ -46,12 +46,12 @@ async def cmd_info(message: types.Message):
 @router.message(RegisterUsers.status)
 async def register_user(message: types.Message, state: FSMContext):
     if message.text == 'Преподаватель':
-        await message.reply('Отлично, теперь необходима пройти регистрацию и подтвердить, что вы преподаватель')
+        await message.reply('Отлично, теперь необходима пройти регистрацию и подтвердить, что вы преподаватель', reply_markup=kb.space)
         await state.set_state(RegisterForTeachers.initials)
         await rq.set_user_status(message.from_user.id, message.text)
-        await message.answer('Введите ваше имя, фамилию и отчество', reply_markup=kb.back)
+        await message.answer('Введите ваше имя, фамилию и отчество', reply_markup=kb.space)
     elif message.text == 'Студент':
-        await message.reply('Отлично, теперь необходима пройти регистрацию')
+        await message.reply('Отлично, теперь необходима пройти регистрацию', reply_markup= kb.space)
         await state.set_state(RegisterForStudents.initials)
         await rq.set_user_status(message.from_user.id, message.text)
         await message.answer('Введите ваше имя, фамилию и отчество', reply_markup=kb.back)
@@ -66,7 +66,7 @@ async def register_name_for_teacher(message: types.Message, state: FSMContext):
         await state.update_data(initials=message.text)
         await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
         await state.set_state(RegisterForTeachers.departmend)
-        await message.answer('Введите вашу кафедру')
+        await message.answer('Введите вашу кафедру', reply_markup=kb.space)
 
 @router.message(RegisterForTeachers.departmend)
 async def register_departmend_for_teachers(message: types.Message, state: FSMContext):
