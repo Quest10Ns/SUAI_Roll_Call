@@ -49,12 +49,12 @@ async def register_user(message: types.Message, state: FSMContext):
         await message.reply('Отлично, теперь необходима пройти регистрацию и подтвердить, что вы преподаватель')
         await state.set_state(RegisterForTeachers.initials)
         await rq.set_user_status(message.from_user.id, message.text)
-        await message.answer('Введите ваше имя, фамилию и отчество')
+        await message.answer('Введите ваше имя, фамилию и отчество', reply_markup=kb.back)
     elif message.text == 'Студент':
         await message.reply('Отлично, теперь необходима пройти регистрацию')
         await state.set_state(RegisterForStudents.initials)
         await rq.set_user_status(message.from_user.id, message.text)
-        await message.answer('Введите ваше имя, фамилию и отчество')
+        await message.answer('Введите ваше имя, фамилию и отчество', reply_markup=kb.back)
 @router.message(RegisterForTeachers.initials)
 async def register_name_for_teacher(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
@@ -75,17 +75,21 @@ async def register_departmend_for_teachers(message: types.Message, state: FSMCon
 
 
 @router.message(RegisterForTeachers.verification_code)
-async def register_verification_code_first_try(message: types.Message, state: FSMContext):
+async def register_verification_code(message: types.Message, state: FSMContext):
     load_dotenv()
-    if message.text == os.getenv('TEACHERS_PASSWORD'):
-        await state.update_data(verification_code=message.text)
-        data = await state.get_data()
-        await message.answer(
-            f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
-        await state.clear()
+    if message.text == 'Назад':
+        await state.set_state(RegisterUsers.status)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
-        await state.set_state(RegisterForTeachers.verification_code)
-        await message.answer('Неверный код доступа. Попробуйте еще раз')
+        if message.text == os.getenv('TEACHERS_PASSWORD'):
+            await state.update_data(verification_code=message.text)
+            data = await state.get_data()
+            await message.answer(
+                f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
+            await state.clear()
+        else:
+            await state.set_state(RegisterForTeachers.verification_code)
+            await message.answer('Неверный код доступа. Попробуйте еще раз', reply_markup=kb.back)
 
 
 
