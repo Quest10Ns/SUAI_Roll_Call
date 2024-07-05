@@ -26,7 +26,7 @@ class Teacher(Base):
     __tablename__ = 'Teachers'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    initials = mapped_column(String(150), nullable=True)
+    initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
     department = mapped_column(String(4), nullable=True)
     user_id = mapped_column(ForeignKey('Users.id'))
 
@@ -34,10 +34,9 @@ class Student(Base):
     __tablename__ = 'Students'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    initials = mapped_column(String(150), nullable=True)
+    initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
     group = mapped_column(String(13), nullable=True)
     user_id = mapped_column(ForeignKey('Users.id'))
-
 
 
 async def async_main():
