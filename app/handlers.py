@@ -75,17 +75,21 @@ async def register_departmend_for_teachers(message: types.Message, state: FSMCon
 
 
 @router.message(RegisterForTeachers.verification_code)
-async def register_verification_code_first_try(message: types.Message, state: FSMContext):
+async def register_verification_code(message: types.Message, state: FSMContext):
     load_dotenv()
-    if message.text == os.getenv('TEACHERS_PASSWORD'):
-        await state.update_data(verification_code=message.text)
-        data = await state.get_data()
-        await message.answer(
-            f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
-        await state.clear()
+    if message.text == 'Назад':
+        await state.set_state(RegisterUsers.status)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
-        await state.set_state(RegisterForTeachers.verification_code)
-        await message.answer('Неверный код доступа. Попробуйте еще раз')
+        if message.text == os.getenv('TEACHERS_PASSWORD'):
+            await state.update_data(verification_code=message.text)
+            data = await state.get_data()
+            await message.answer(
+                f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
+            await state.clear()
+        else:
+            await state.set_state(RegisterForTeachers.verification_code)
+            await message.answer('Неверный код доступа. Попробуйте еще раз', reply_markup=kb.back)
 
 
 
