@@ -32,6 +32,7 @@ async def set_student_initials_for_teachers(tg_id, initials):
                     teacher.initials = initials
                     await session.commit()
 
+
 async def set_departmend_for_teachers(tg_id, departmend):
     async with async_session() as session:
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
@@ -39,6 +40,7 @@ async def set_departmend_for_teachers(tg_id, departmend):
         if user and teacher:
             teacher.department = departmend
             await session.commit()
+
 
 async def set_student_initials_for_students(tg_id, initials):
     async with async_session() as session:
@@ -52,6 +54,8 @@ async def set_student_initials_for_students(tg_id, initials):
                 if student:
                     student.initials = initials
                     await session.commit()
+
+
 async def set_group_for_student(tg_id, group):
     async with async_session() as session:
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))

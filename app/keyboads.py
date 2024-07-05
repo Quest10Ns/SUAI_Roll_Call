@@ -9,4 +9,3 @@ back = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Назад')]],
                            resize_keyboard=True)
 
 info_about_me = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Личная информация')]], resize_keyboard=True)
-
