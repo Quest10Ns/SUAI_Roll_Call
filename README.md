@@ -68,6 +68,7 @@ To work with this project, you need to have Python 3.12 installed. All the neces
    ```
    TOKEN = your_bot_token
    SQLALCHEMY_URL = postgresql+asyncpg://user:password@host:port/dbname
+   TEACHERS_PASSWORD = Techers_password
    ```
 
 8. Run the code from ```main.py``` and check that everything is working as expected.
