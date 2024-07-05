@@ -83,6 +83,7 @@ async def register_name_for_student(message: types.Message, state: FSMContext):
 @router.message(RegisterForStudents.group)
 async def register_group(message: types.Message, state: FSMContext):
     await state.update_data(group=message.text)
+    await rq.set_group_for_student(message.from_user.id, message.text)
     data = await state.get_data()
     await message.answer(
         f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}')
