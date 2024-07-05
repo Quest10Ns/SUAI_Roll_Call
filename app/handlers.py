@@ -55,6 +55,8 @@ async def register_user(message: types.Message, state: FSMContext):
         await state.set_state(RegisterForStudents.initials)
         await rq.set_user_status(message.from_user.id, message.text)
         await message.answer('Введите ваше имя, фамилию и отчество', reply_markup=kb.back)
+    else:
+        await message.reply('Пожалуйста, выберите правильный статус: Преподаватель или Студент', reply_markup=kb.main)
 @router.message(RegisterForTeachers.initials)
 async def register_name_for_teacher(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
