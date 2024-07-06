@@ -63,3 +63,10 @@ async def set_group_for_student(tg_id, group):
         if user and student:
             student.group = group
             await session.commit()
+
+async def get_user_status(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        if user:
+            return user.status
+

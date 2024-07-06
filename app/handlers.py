@@ -121,3 +121,12 @@ async def register_group(message: types.Message, state: FSMContext):
     await message.answer(
         f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}', reply_markup=kb.edit_personal_data)
     await state.clear()
+
+@router.message(F.text == 'Изменить')
+async def edit_persoanl_data(message: types.Message, state: FSMContext):
+    status = await rq.get_user_status(message.from_user.id)
+    if status == 'Студент':
+
+    else:
+
+
