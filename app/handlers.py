@@ -94,7 +94,7 @@ async def register_verification_code(message: types.Message, state: FSMContext):
             await state.update_data(verification_code=message.text)
             data = await state.get_data()
             await message.answer(
-                f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]} \n Код подтверждения: {data["verification_code"]}')
+                f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]}', reply_markup=kb.edit_personal_data)
             await state.clear()
         else:
             await state.set_state(RegisterForTeachers.verification_code)
@@ -119,5 +119,5 @@ async def register_group(message: types.Message, state: FSMContext):
     await rq.set_group_for_student(message.from_user.id, message.text)
     data = await state.get_data()
     await message.answer(
-        f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}')
+        f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}', reply_markup=kb.edit_personal_data)
     await state.clear()
