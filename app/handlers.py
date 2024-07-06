@@ -69,11 +69,15 @@ async def register_name_for_teacher(message: types.Message, state: FSMContext):
         await state.set_state(RegisterUsers.status)
         await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
-        await state.update_data(initials=message.text)
-        await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
-        await state.set_state(RegisterForTeachers.departmend)
-        await message.answer('Введите вашу кафедру', reply_markup=kb.back)
-
+        if not rq.get_teachers_initials(message.from_user.id):
+            await state.update_data(initials=message.text)
+            await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
+            await state.set_state(RegisterForTeachers.departmend)
+            await message.answer('Введите вашу кафедру', reply_markup=kb.back)
+        else:
+            await state.update_data(initials=message.text)
+            await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
+            await state.clear()
 
 @router.message(RegisterForTeachers.departmend)
 async def register_departmend_for_teachers(message: types.Message, state: FSMContext):
@@ -94,7 +98,8 @@ async def register_verification_code(message: types.Message, state: FSMContext):
             await state.update_data(verification_code=message.text)
             data = await state.get_data()
             await message.answer(
-                f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]}', reply_markup=kb.edit_personal_data)
+                f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]}',
+                reply_markup=kb.edit_button)
             await state.clear()
         else:
             await state.set_state(RegisterForTeachers.verification_code)
@@ -107,10 +112,15 @@ async def register_name_for_student(message: types.Message, state: FSMContext):
         await state.set_state(RegisterUsers.status)
         await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
-        await state.update_data(initials=message.text)
-        await rq.set_student_initials_for_students(message.from_user.id, message.text)
-        await state.set_state(RegisterForStudents.group)
-        await message.answer('Введите вашу учебную группу', reply_markup=kb.back)
+        if not rq.get_student_initials(message.from_user.id):
+            await state.update_data(initials=message.text)
+            await rq.set_student_initials_for_students(message.from_user.id, message.text)
+            await state.set_state(RegisterForStudents.group)
+            await message.answer('Введите вашу учебную группу', reply_markup=kb.back)
+        else:
+            await state.update_data(initials=message.text)
+            await rq.set_student_initials_for_students(message.from_user.id, message.text)
+            await state.clear()
 
 
 @router.message(RegisterForStudents.group)
@@ -119,14 +129,26 @@ async def register_group(message: types.Message, state: FSMContext):
     await rq.set_group_for_student(message.from_user.id, message.text)
     data = await state.get_data()
     await message.answer(
-        f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}', reply_markup=kb.edit_personal_data)
+        f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}',
+        reply_markup=kb.edit_button)
     await state.clear()
 
+
 @router.message(F.text == 'Изменить')
-async def edit_persoanl_data(message: types.Message, state: FSMContext):
+async def edit_persoanl_data(message: types.Message):
     status = await rq.get_user_status(message.from_user.id)
     if status == 'Студент':
-
+        await message.reply('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_student)
     else:
+        await message.reply('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_teacher)
 
 
+@router.message(F.text == '💼ФИО')
+async def edit_initials_for_teachers_start(message: types.Message, state: FSMContext):
+    await state.set_state(RegisterForTeachers.initials)
+    await message.answer('Введите новые ФИО', reply_markup=kb.space)
+
+@router.message(F.text == '🎓ФИО')
+async def edit_initials_for_student_start(message: types.Message, state: FSMContext):
+    await state.set_state(RegisterForStudents.initials)
+    await message.answer('Введите новые ФИО', reply_markup=kb.space)

@@ -70,3 +70,35 @@ async def get_user_status(tg_id):
         if user:
             return user.status
 
+async def get_student_initials(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        if user:
+            student = await session.scalar(select(Student).filter(Student.user_id == user.id))
+            if student:
+                return student.initials
+
+async def get_student_group(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        if user:
+            student = await session.scalar(select(Student).filter(Student.user_id == user.id))
+            if student:
+                return student.group
+
+
+async def get_teachers_initials(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        if user:
+            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
+            if teacher:
+                return teacher.initials
+
+async def get_teachers_department(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        if user:
+            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
+            if teacher:
+                return teacher.department
