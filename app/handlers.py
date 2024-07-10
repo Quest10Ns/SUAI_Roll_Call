@@ -30,14 +30,14 @@ class RegisterUsers(StatesGroup):
 async def cmd_start(message: types.Message, state: FSMContext):
     await rq.set_user(message.from_user.id)
     await state.set_state(RegisterUsers.status)
-    await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.start_buttons)
+    await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.main)
 
 
 @router.message(F.text == 'Неверный код доступа. Видимо Вы не преподаватель')
 async def cmd_start(message: types.Message, state: FSMContext):
     await rq.set_user(message.from_user.id)
     await state.set_state(RegisterUsers.status)
-    await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.start_buttons)
+    await message.answer('Добро пожаловать в бота, который проверяет посещения пар в ГУАПе', reply_markup=kb.main)
 
 
 @router.message(Command('info'))
@@ -60,14 +60,14 @@ async def register_user(message: types.Message, state: FSMContext):
         await rq.set_user_status(message.from_user.id, message.text)
 
     else:
-        await message.reply('Пожалуйста, выберите правильный статус: Преподаватель или Студент', reply_markup=kb.start_buttons)
+        await message.reply('Пожалуйста, выберите правильный статус: Преподаватель или Студент', reply_markup=kb.main)
 
 
 @router.message(RegisterForTeachers.initials)
 async def register_name_for_teacher(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
-        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.start_buttons)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
         if not await rq.get_teachers_initials(message.from_user.id):
             await state.update_data(initials=message.text)
@@ -79,16 +79,16 @@ async def register_name_for_teacher(message: types.Message, state: FSMContext):
             await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
             await state.clear()
             if await rq.get_teachers_initials(message.from_user.id) == message.text:
-                await message.answer(f'ФИО успешно изменено на {message.text}', reply_markup=kb.main_buttuns)
+                await message.answer(f'ФИО успешно изменено на {message.text}')
             else:
-                await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns)
+                await message.answer(f'Изменить не удалось')
 
 
 @router.message(RegisterForTeachers.departmend)
 async def register_departmend_for_teachers(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
-        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.start_buttons)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
         if not await rq.get_teachers_department(message.from_user.id):
             await state.update_data(departmend=message.text)
@@ -100,9 +100,9 @@ async def register_departmend_for_teachers(message: types.Message, state: FSMCon
             await rq.set_departmend_for_teachers(message.from_user.id, message.text)
             await state.clear()
             if await rq.get_teachers_department(message.from_user.id) == message.text:
-                await message.answer(f'Кафедра успешно изменена на {message.text}', reply_markup=kb.main_buttuns)
+                await message.answer(f'Кафедра успешно изменена на {message.text}')
             else:
-                await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns)
+                await message.answer(f'Изменить не удалось')
 
 
 @router.message(RegisterForTeachers.verification_code)
@@ -110,7 +110,7 @@ async def register_verification_code(message: types.Message, state: FSMContext):
     load_dotenv()
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
-        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.start_buttons)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
         if message.text == os.getenv('TEACHERS_PASSWORD'):
             await state.update_data(verification_code=message.text)
@@ -128,7 +128,7 @@ async def register_verification_code(message: types.Message, state: FSMContext):
 async def register_name_for_student(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
-        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.start_buttons)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
         if not await rq.get_student_initials(message.from_user.id):
             await state.update_data(initials=message.text)
@@ -140,16 +140,16 @@ async def register_name_for_student(message: types.Message, state: FSMContext):
             await rq.set_student_initials_for_students(message.from_user.id, message.text)
             await state.clear()
             if await rq.get_student_initials(message.from_user.id) == message.text:
-                await message.answer(f'ФИО успешно изменено на {message.text}',reply_markup=kb.main_buttuns)
+                await message.answer(f'ФИО успешно изменено на {message.text}')
             else:
-                await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns)
+                await message.answer(f'Изменить не удалось')
 
 
 @router.message(RegisterForStudents.group)
 async def register_group(message: types.Message, state: FSMContext):
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
-        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.start_buttons)
+        await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:', reply_markup=kb.main)
     else:
         if not await rq.get_student_group(message.from_user.id):
             await state.update_data(group=message.text)
@@ -164,14 +164,10 @@ async def register_group(message: types.Message, state: FSMContext):
             await rq.set_group_for_student(message.from_user.id, message.text)
             await state.clear()
             if await rq.get_student_group(message.from_user.id) == message.text:
-                await message.answer(f'Группа успешно изменена на {message.text}', reply_markup=kb.main_buttuns)
+                await message.answer(f'Группа успешно изменена на {message.text}')
             else:
-                await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns)
+                await message.answer(f'Изменить не удалось')
 
-@router.callback_query(F.data == 'data_is_right')
-async def edit_personal_data(callback: types.CallbackQuery):
-    await callback.message.answer('Отлично, регистрация успешно пройдена!', reply_markup=kb.main_buttuns)
-    await callback.answer()
 
 @router.callback_query(F.data == 'editor')
 async def edit_personal_data(callback: types.CallbackQuery):
@@ -205,6 +201,6 @@ async def edit_group(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == 'edit_teachers_department')
 async def edit_group(callback: types.CallbackQuery, state: FSMContext):
-    await state.set_state(RegisterForTeachers.departmend)
+    await  state.set_state(RegisterForTeachers.departmend)
     await callback.message.answer('Введите новую группу', reply_markup=kb.space)
     await callback.answer()
