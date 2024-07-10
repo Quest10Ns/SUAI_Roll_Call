@@ -102,3 +102,15 @@ async def get_teachers_department(tg_id):
             teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
             if teacher:
                 return teacher.department
+
+async def get_teacher(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        teacher = teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
+        return teacher
+
+async def get_student(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        student = await session.scalar(select(Student).filter(Student.user_id == user.id))
+        return student
