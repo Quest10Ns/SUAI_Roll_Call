@@ -13,6 +13,12 @@ edit_button = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅Подтвердить', callback_data='data_is_right'),
      InlineKeyboardButton(text='✏️Изменить', callback_data='editor')]])
 
+
+edit_main_buttons = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='✅', callback_data='accept'),
+     InlineKeyboardButton(text='✏️', callback_data='edit')]])
+
+
 edit_personal_data_student = InlineKeyboardMarkup(
     inline_keyboard=[[InlineKeyboardButton(text='🎓ФИО', callback_data="edit_students_initials"),
                       InlineKeyboardButton(text='Группа', callback_data="edit_group")]])

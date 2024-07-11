@@ -1,6 +1,7 @@
 # 🤝 Welcome to SUAI Roll Call Bot
 
-To work with this project, you need to have Python 3.12 installed. All the necessary libraries and frameworks can be found in the `requirements.txt` file. To install them, follow these steps:
+To work with this project, you need to have Python 3.12 installed. All the necessary libraries and frameworks can be
+found in the `requirements.txt` file. To install them, follow these steps:
 
 1. First, upgrade your pip version:
 
@@ -77,13 +78,17 @@ To work with this project, you need to have Python 3.12 installed. All the neces
 
 1. Work in separate branches.
 2. All changes to the master branch are made through me (Daniil).
-3. When you start working on something, create a task in the issue and mark yourself as working on it to avoid duplication of work.
+3. When you start working on something, create a task in the issue and mark yourself as working on it to avoid
+   duplication of work.
 4. Before starting work on something, check the issue to make sure that no one else is working on it.
 5. When you finish a task, don't forget to close it.
-6. If you understand that something needs to be done or changed in the project, create a task for it. If you can't do it yourself or just don't want to, don't mark yourself as working on it.
-7. Describe all commits clearly so that it's clear what was done and in case of need, you can roll back to the necessary version.
+6. If you understand that something needs to be done or changed in the project, create a task for it. If you can't do it
+   yourself or just don't want to, don't mark yourself as working on it.
+7. Describe all commits clearly so that it's clear what was done and in case of need, you can roll back to the necessary
+   version.
 8. **Use English as much as possible.**
 
 # Happy Pythoning! ❤️🐍
 
-Well, as they say, happy Pythoning! 🐍 May your code be clean, your bugs be few, and your coffee be strong. Here's to a productive and enjoyable coding session!
+Well, as they say, happy Pythoning! 🐍 May your code be clean, your bugs be few, and your coffee be strong. Here's to a
+productive and enjoyable coding session!
