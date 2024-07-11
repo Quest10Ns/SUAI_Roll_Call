@@ -32,8 +32,10 @@ async def cmd_start(message: types.Message, state: FSMContext):
             await rq.get_student(message.from_user.id) or await rq.get_teacher(message.from_user.id))):
         if await rq.get_student(message.from_user.id):
             await message.answer('И снова здравствуйте', reply_markup=kb.main_buttuns_for_student)
-        else:
+        elif await rq.get_teacher(message.from_user.id):
             await message.answer('И снова здравствуйте', reply_markup=kb.main_buttuns_for_teachers)
+        else:
+            await message.answer('Продолжите регистрацию', reply_markup=kb.start_buttons)
     else:
         await rq.set_user(message.from_user.id)
         await state.set_state(RegisterUsers.status)
