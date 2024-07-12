@@ -12,11 +12,15 @@ async def set_schedule_for_students():
             if file == 'parse.py':
                 continue
             file_path = os.path.join(folder_path, file)
-            async with aiofiles.open(file_path, mode='r') as f:
+            async with aiofiles.open(file_path, mode='r', encoding='utf-8') as f:
                 group = await f.readline()
-                existing_group = await session.scalar(select(ScheduleForStudent).where(ScheduleForStudent.group == group.strip()))
+                group = group[6:].strip()
+                print(group)
+                existing_group = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == group.strip()))
                 if not existing_group:
+                    print('in')
                     session.add(ScheduleForStudent(group=group.strip()))
+
         await session.commit()
         print('Commited')
 
