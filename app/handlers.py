@@ -29,7 +29,9 @@ class RegisterUsers(StatesGroup):
 @router.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     if (await rq.get_user_status(message.from_user.id) and (
-            await rq.get_student(message.from_user.id) or await rq.get_teacher(message.from_user.id))):
+            ((await rq.get_student_group(message.from_user.id) is not None) and (
+                    (await rq.get_student_initials(message.from_user.id) is not None)) or (
+                    (await rq.get_teachers_initials(message.from_user.id) is not None) and (await rq.get_teachers_department(message.from_user.id) is not None))))):
         if await rq.get_student(message.from_user.id):
             await message.answer('И снова здравствуйте', reply_markup=kb.main_buttuns_for_student)
         elif await rq.get_teacher(message.from_user.id):
@@ -240,7 +242,7 @@ async def edit_group(callback: types.CallbackQuery, state: FSMContext):
 
 @router.message(F.text == 'ⓘЛичная информация')
 async def main_personal_data(message: types.Message):
-    if await rq.get_user_status(message.from_user.id):
+    if await rq.get_user_status(message.from_user.id) == 'Студент':
         await message.answer(
             f'Ваши данные: \n Ваш статус: Студент \n Ваше ФИО: {await rq.get_student_initials(message.from_user.id)} \n Ваша учебная группа: {await rq.get_student_group(message.from_user.id)}',
             reply_markup=kb.edit_main_buttons)
