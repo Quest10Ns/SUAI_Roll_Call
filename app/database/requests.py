@@ -1,7 +1,8 @@
+import os
 from app.database.models import async_session
 from app.database.models import User, Teacher, Student
 from sqlalchemy import select, update, delete
-
+import aiofiles
 
 async def set_user(tg_id):
     async with  async_session() as session:

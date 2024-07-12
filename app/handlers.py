@@ -6,6 +6,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 import app.keyboads as kb
 import app.database.requests as rq
+import app.database.add_schedule__to_db_for_students as ass
 from dotenv import load_dotenv
 
 router = Router()

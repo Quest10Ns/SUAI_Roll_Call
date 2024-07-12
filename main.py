@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from app.handlers import router
 from app.database.models import async_main
 from dotenv import load_dotenv
+from app.database.add_schedule__to_db_for_students import set_schedule_for_students
 
 
 async def main():
@@ -19,5 +20,6 @@ async def main():
 if __name__ == '__main__':
     try:
         asyncio.run(main())
+        asyncio.run(set_schedule_for_students())
     except KeyboardInterrupt:
         print('Bot Shutting')
