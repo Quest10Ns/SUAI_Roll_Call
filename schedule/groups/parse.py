@@ -42,39 +42,24 @@ def get_schedule(group_id):
     pages = pages[start:endLine].split("<h3>")
 
     for page in pages:
-        page = (page.replace("h3", "").replace("<h4", "--").replace('>', "").replace("<", "")
-                .replace('div', '', ).replace('/', '').replace('class=', '')
-                .replace('"', '').replace('span', '').replace('a', '').replace('em', '')
-                .replace('study', '').replace('b', '').replace('title=', '').replace('preps', '')
-                .replace('dn', '').replace('нижняя (четная)', '').replace('верхняя (нечетная)', '')
-                .replace('groups', '').replace('href=', '').replace('?g=', '').replace('up', '')
-                .replace('?p=', ''))
+        page = page.replace('<h4>', '--')
+        for i in range(page.count('<')):
+            start = page.find('<')
+            end = page.find('>')
+            page = page[:start:] + ' ' + page[end + 1::]
 
-        for i in range(page.count(";")):
-            cnt = page.find(";")
-            page = page[:cnt] + ', ' + page[cnt + 3 + len(group_id):]
-
-        for i in range(page.count("Преподаватель:")):
-            cnt = page.find("Преподаватель:")
-            page = page[:cnt + 13] + ' ' + page[cnt + 19:]
-
-        for i in range(page.count("Группы:")):
-            cnt = page.find("Группы:")
-            page = page[:cnt + 6] + ' ' + page[cnt + 9 + len(group_id):]
-
-        for i in range(page.count("Группа:")):
-            cnt = page.find("Группа:")
-            page = page[:cnt + 6] + ' ' + page[cnt + 9 + len(group_id):]
+        while '  ' in page:
+            page = page.replace('  ', ' ')
 
         schedule.append(page.split("--"))
-
     return schedule[1:]
 
 all_groups = get_groups()
-print(all_groups)
+# print(all_groups)
+
 for i in range(len(all_groups)):
     with open(f'Групп №{all_groups[i][1]}.txt', 'w', encoding='utf-8') as gs:
-        print(all_groups[i][1]+'\n', file=gs)
+        print(('Группа ' + all_groups[i][1]+'\n'), file=gs)
         schedule_for_group = get_schedule(all_groups[i][0])
         for day in schedule_for_group:
             for lessons in day:

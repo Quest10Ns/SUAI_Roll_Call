@@ -54,13 +54,15 @@ def get_schedule(teacher):
             page = page[:cnt] + page[cnt + 15 + len(teacher[1]):]
 
         schedule.append(page.split("--"))
+
     return schedule[1:]
 
 all_teacher = get_teachers()
+
 for i in range(len(all_teacher)):
     name_file = 'Препод '+(all_teacher[i][1].split("-"))[0]
     with open(f'{name_file}.txt', 'w', encoding='utf-8') as gs:
-        print(all_teacher[i][1]+'\n', file=gs)
+        print(('Группа ' + all_teacher[i][1]+'\n'), file=gs)
         schedule_for_teacher = get_schedule(all_teacher[i])
         for day in schedule_for_teacher:
             for lessons in day:
