@@ -1,5 +1,7 @@
 import asyncio
 import os
+import time
+import logging
 from aiogram import types, F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
@@ -11,6 +13,7 @@ from dotenv import load_dotenv
 
 router = Router()
 
+attempts = {}
 
 class RegisterForTeachers(StatesGroup):
     initials = State()
@@ -127,6 +130,16 @@ async def register_departmend_for_teachers(message: types.Message, state: FSMCon
 @router.message(RegisterForTeachers.verification_code)
 async def register_verification_code(message: types.Message, state: FSMContext):
     load_dotenv()
+    user_id = message.from_user.id
+    if user_id not in attempts:
+        attempts[user_id] = {'count': 0, 'cooldown': 0}
+    current_time = time.time()
+
+    if current_time < attempts[user_id]['cooldown']:
+        remaining_time = int(attempts[user_id]['cooldown'] - current_time)
+        await message.answer(f'Вы превысили количество попыток. Пожалуйста, подождите {remaining_time} секунд.')
+        return
+
     if message.text == 'Назад':
         await state.set_state(RegisterUsers.status)
         await message.answer('Вы вернулись к выбору статуса. Пожалуйста, выберите вашу роль:',
@@ -139,9 +152,18 @@ async def register_verification_code(message: types.Message, state: FSMContext):
                 f'Вы успешно зарегистрированы как преподаватель. \n Ваше ФИО: {data["initials"]} \n Кафедра: {data["departmend"]}',
                 reply_markup=kb.edit_button)
             await state.clear()
+            attempts[user_id]['count'] = 0
         else:
-            await state.set_state(RegisterForTeachers.verification_code)
-            await message.answer('Неверный код доступа. Попробуйте еще раз', reply_markup=kb.back)
+            attempts[user_id]['count'] += 1
+            if attempts[user_id]['count'] >= 3:
+                attempts[user_id]['cooldown'] = current_time + 60
+                await message.answer('Неверный код доступа. Попробуйте еще раз через 60 секунд', reply_markup=kb.back)
+            else:
+                await state.set_state(RegisterForTeachers.verification_code)
+                await message.answer(f'Неверный код доступа. Попробуйте еще раз. Осталось попыток: {3 - attempts[user_id]["count"]}',
+                                     reply_markup=kb.back)
+
+
 
 
 @router.message(RegisterForStudents.initials)
