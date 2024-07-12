@@ -20,6 +20,12 @@ async def set_schedule_for_students():
                 if not existing_group:
                     print('in')
                     session.add(ScheduleForStudent(group=group.strip()))
+                async for line in f:
+                    current = line.strip()
+                    if len(current) == 0:
+                        continue
+                    else:
+                        if
 
         await session.commit()
         print('Commited')
