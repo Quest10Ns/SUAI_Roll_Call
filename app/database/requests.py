@@ -1,8 +1,9 @@
 import os
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student, ScheduleForStudent
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher
 from sqlalchemy import select, update, delete
 import aiofiles
+
 
 async def set_user(tg_id):
     async with  async_session() as session:
@@ -122,12 +123,20 @@ async def get_student(tg_id):
         student = await session.scalar(select(Student).filter(Student.user_id == user.id))
         return student
 
+
 async def get_schedule(tg_id):
     async with async_session() as session:
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
         if user.status == 'Студент':
             student = await session.scalar(select(Student).filter(Student.user_id == user.id))
             if student:
-                schedule = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == student.group))
+                schedule = await session.scalar(
+                    select(ScheduleForStudent).filter(ScheduleForStudent.group == student.group))
                 return schedule
-
+        else:
+            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
+            if teacher:
+                Initials = teacher.initials.split(' ')
+                FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
+                schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
+                return schedule

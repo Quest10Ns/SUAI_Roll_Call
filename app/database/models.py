@@ -55,6 +55,18 @@ class ScheduleForStudent(Base):
     Friday = mapped_column(Text, nullable=True)
     Saturday = mapped_column(Text, nullable=True)
 
+class ScheduleForTeacher(Base):
+    __tablename__ = 'ScheduleForTeachers'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    Teacher = mapped_column(String(100), nullable=True)
+    Monday = mapped_column(Text, nullable=True)
+    Tuesday = mapped_column(Text, nullable=True)
+    Wednesday = mapped_column(Text, nullable=True)
+    Thursday = mapped_column(Text, nullable=True)
+    Friday = mapped_column(Text, nullable=True)
+    Saturday = mapped_column(Text, nullable=True)
+
 async def async_main():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
