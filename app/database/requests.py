@@ -1,6 +1,6 @@
 import os
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student
+from app.database.models import User, Teacher, Student, ScheduleForStudent
 from sqlalchemy import select, update, delete
 import aiofiles
 
@@ -121,3 +121,13 @@ async def get_student(tg_id):
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
         student = await session.scalar(select(Student).filter(Student.user_id == user.id))
         return student
+
+async def get_schedule(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        if user.status == 'Студент':
+            student = await session.scalar(select(Student).filter(Student.user_id == user.id))
+            if student:
+                schedule = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == student.group))
+                return schedule
+
