@@ -15,7 +15,7 @@ from app.database.add_schedule__to_db_for_students import set_schedule_for_stude
 #     dp = Dispatcher()
 #     dp.include_router(router)
 #     # Первый раз запускаем с нижней строчкой, когда в терминале увидели commited, останавливаем и запускаем еще раз с этой строчкой, увидели commited - останавливаем, проверяем БД если все на месте убираем эту строку(комментируем).
-#     # await asyncio.gather(dp.start_polling(bot), set_schedule_for_students())
+#     await asyncio.gather(dp.start_polling(bot), set_schedule_for_students())
 #
 #
 # if __name__ == '__main__':
