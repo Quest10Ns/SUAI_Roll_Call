@@ -1,6 +1,6 @@
 import os
 
-from sqlalchemy import BigInteger, String, DateTime, ForeignKey
+from sqlalchemy import BigInteger, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from dotenv import load_dotenv
@@ -48,12 +48,12 @@ class ScheduleForStudent(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     group = mapped_column(String(13), nullable=True)
-    Monday = mapped_column(String(500), nullable=True)
-    Tuesday = mapped_column(String(500), nullable=True)
-    Wednesday = mapped_column(String(500), nullable=True)
-    Thursday = mapped_column(String(500), nullable=True)
-    Friday = mapped_column(String(500), nullable=True)
-    Saturday = mapped_column(String(500), nullable=True)
+    Monday = mapped_column(Text, nullable=True)
+    Tuesday = mapped_column(Text, nullable=True)
+    Wednesday = mapped_column(Text, nullable=True)
+    Thursday = mapped_column(Text, nullable=True)
+    Friday = mapped_column(Text, nullable=True)
+    Saturday = mapped_column(Text, nullable=True)
 
 async def async_main():
     async with engine.begin() as conn:
