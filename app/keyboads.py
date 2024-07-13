@@ -37,6 +37,6 @@ main_buttuns_for_student = ReplyKeyboardMarkup(
               [KeyboardButton(text='ⓘЛичная информация')]], resize_keyboard=True)
 
 main_buttuns_for_teachers = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text='🗓️Расписание'), KeyboardButton(text='✅Посещение')],
+    keyboard=[[KeyboardButton(text='📅Расписание'), KeyboardButton(text='✅Посещение')],
               [KeyboardButton(text='🏆Рейтинг')],
               [KeyboardButton(text='ⓘЛичная информация')]], resize_keyboard=True)

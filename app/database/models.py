@@ -1,17 +1,19 @@
 import os
 
-from sqlalchemy import BigInteger, String, DateTime, ForeignKey
+from sqlalchemy import BigInteger, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from dotenv import load_dotenv
 
 load_dotenv()
-engine = create_async_engine(url= os.getenv('SQLALCHEMY_URL'))
+engine = create_async_engine(url=os.getenv('SQLALCHEMY_URL'))
 
 async_session = async_sessionmaker(engine)
 
+
 class Base(AsyncAttrs, DeclarativeBase):
     pass
+
 
 class User(Base):
     __tablename__ = 'Users'
@@ -22,6 +24,7 @@ class User(Base):
     # initials = mapped_column(String(150),nullable=True)
     # group_or_department = mapped_column(String(7), nullable=True)
 
+
 class Teacher(Base):
     __tablename__ = 'Teachers'
 
@@ -29,6 +32,7 @@ class Teacher(Base):
     initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
     department = mapped_column(String(4), nullable=True)
     user_id = mapped_column(ForeignKey('Users.id'))
+
 
 class Student(Base):
     __tablename__ = 'Students'
@@ -38,6 +42,18 @@ class Student(Base):
     group = mapped_column(String(13), nullable=True)
     user_id = mapped_column(ForeignKey('Users.id'))
 
+
+class ScheduleForStudent(Base):
+    __tablename__ = 'ScheduleForStudents'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group = mapped_column(String(13), nullable=True)
+    Monday = mapped_column(Text, nullable=True)
+    Tuesday = mapped_column(Text, nullable=True)
+    Wednesday = mapped_column(Text, nullable=True)
+    Thursday = mapped_column(Text, nullable=True)
+    Friday = mapped_column(Text, nullable=True)
+    Saturday = mapped_column(Text, nullable=True)
 
 async def async_main():
     async with engine.begin() as conn:

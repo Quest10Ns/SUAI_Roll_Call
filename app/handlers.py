@@ -8,6 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 import app.keyboads as kb
 import app.database.requests as rq
+import app.database.add_schedule__to_db_for_students as ass
 from dotenv import load_dotenv
 
 router = Router()
@@ -298,3 +299,21 @@ async def edit_back(callback: types.CallbackQuery):
         await callback.message.edit_text(
             f'Ваши данные: \n Ваш статус: Преподаватель \n Ваше ФИО: {await rq.get_teachers_initials(callback.from_user.id)} \n Кафедра: {await rq.get_teachers_department(callback.from_user.id)}',
             reply_markup=kb.edit_main_buttons)
+
+@router.message(F.text == '📅Расписание')
+async def main_schedule(message: types.Message):
+    if await rq.get_user_status(message.from_user.id) == 'Студент':
+        schedule = await rq.get_schedule(message.from_user.id)
+        await message.answer(
+            f'Ваше расписание: \n\n'
+            f'Понедельник: \n\n{ schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
+            f'Вторник: \n\n{ schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
+            f'Среда: \n\n{schedule.Wednesday if schedule.Wednesday else " Пар нет \n"}\n'
+            f'Четверг: \n\n{ schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
+            f'Пятница: \n\n{ schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
+            f'Суббота: \n\n{ schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
+            f'Ваша учебная группа: {await rq.get_student_group(message.from_user.id)}'
+        )
+    else:
+        await message.answer(
+            f'In progress')
