@@ -197,22 +197,30 @@ async def register_group(message: types.Message, state: FSMContext):
                              reply_markup=kb.start_buttons)
     else:
         if not await rq.get_student_group(message.from_user.id):
-            await state.update_data(group=message.text)
-            await rq.set_group_for_student(message.from_user.id, message.text)
-            data = await state.get_data()
-            await message.answer(
-                f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}',
-                reply_markup=kb.edit_button)
-            await state.clear()
-        else:
-            await state.update_data(group=message.text)
-            await rq.set_group_for_student(message.from_user.id, message.text)
-            await state.clear()
-            if await rq.get_student_group(message.from_user.id) == message.text:
-                await message.answer(f'Группа успешно изменена на {message.text}',
-                                     reply_markup=kb.main_buttuns_for_student)
+            cur_group = await rq.get_right_gpoup(message.text)  # Добавляем await здесь
+            if not cur_group:
+                await message.answer(f'Такой группы не существует. Попробуйте еще раз', reply_markup=kb.main_buttuns_for_student)
             else:
-                await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns_for_student)
+                await state.update_data(group=message.text)
+                await rq.set_group_for_student(message.from_user.id, message.text)
+                data = await state.get_data()
+                await message.answer(
+                    f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}',
+                    reply_markup=kb.edit_button)
+                await state.clear()
+        else:
+            cur_group = await rq.get_right_gpoup(message.text)  # Добавляем await здесь
+            if not cur_group:
+                await message.answer(f'Такой группы не существует. Попробуйте еще раз', reply_markup=kb.main_buttuns_for_student)
+            else:
+                await state.update_data(group=message.text)
+                await rq.set_group_for_student(message.from_user.id, message.text)
+                await state.clear()
+                if await rq.get_student_group(message.from_user.id) == message.text:
+                    await message.answer(f'Группа успешно изменена на {message.text}',
+                                         reply_markup=kb.main_buttuns_for_student)
+                else:
+                    await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns_for_student)
 
 
 @router.callback_query(F.data == 'data_is_right')

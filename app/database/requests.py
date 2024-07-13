@@ -131,3 +131,7 @@ async def get_schedule(tg_id):
                 schedule = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == student.group))
                 return schedule
 
+async def get_right_gpoup(student_group):
+    async with async_session() as session:
+        group = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == student_group))
+        return bool(group)
