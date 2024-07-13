@@ -1,25 +1,26 @@
 import os
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student, ScheduleForStudent
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher
 from sqlalchemy import select, update, delete
 import aiofiles
 
 async def set_schedule_teachers():
-    folder_path = 'schedule/groups'
+    folder_path = 'schedule/teachers'
     files = os.listdir(folder_path)
     async with async_session() as session:
         for file in files:
-            if file == 'parse.py':
+            if file == 'parseT.py':
                 continue
             file_path = os.path.join(folder_path, file)
             async with aiofiles.open(file_path, mode='r', encoding='utf-8') as f:
-                group = await f.readline()
-                group = group[6:].strip()
-                print(group)
-                existing_group = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == group))
+                teacher = await f.readline()
+                pos = teacher.find('-')
+                teacher = teacher[0:pos-1].strip()
+                print(teacher)
+                existing_teacher = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == teacher))
                 schedule = None
-                if not existing_group:
-                    schedule = ScheduleForStudent(group=group)
+                if not existing_teacher:
+                    schedule = ScheduleForTeacher(Teacher=teacher)
                     session.add(schedule)
                 content = await f.readlines()
                 le_cont = len(content)
@@ -37,19 +38,19 @@ async def set_schedule_teachers():
                         while i < le_cont and len(content[i].strip()) != 0:
                             block += content[i]
                             i += 1
-                        if existing_group:
+                        if existing_teacher:
                             if current_day == 'Понедельник':
-                                existing_group.Monday = block
+                                existing_teacher.Monday = block
                             elif current_day == 'Вторник':
-                                existing_group.Tuesday = block
+                                existing_teacher.Tuesday = block
                             elif current_day == 'Среда':
-                                existing_group.Wednesday = block
+                                existing_teacher.Wednesday = block
                             elif current_day == 'Четверг':
-                                existing_group.Thursday = block
+                                existing_teacher.Thursday = block
                             elif current_day == 'Пятница':
-                                existing_group.Friday = block
+                                existing_teacher.Friday = block
                             elif current_day == 'Суббота':
-                                existing_group.Saturday = block
+                                existing_teacher.Saturday = block
                     else:
                         i += 1
         await session.commit()
