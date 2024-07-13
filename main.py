@@ -13,8 +13,6 @@ async def main():
     bot = Bot(token=os.getenv('TOKEN'))
     dp = Dispatcher()
     dp.include_router(router)
-
-    # Запуск бота и функции set_schedule_for_students одновременно
     await asyncio.gather(dp.start_polling(bot), set_schedule_for_students())
 
 if __name__ == '__main__':
