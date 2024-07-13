@@ -21,11 +21,13 @@ edit_main_buttons = InlineKeyboardMarkup(inline_keyboard=[
 
 edit_personal_data_student = InlineKeyboardMarkup(
     inline_keyboard=[[InlineKeyboardButton(text='🎓ФИО', callback_data="edit_students_initials"),
-                      InlineKeyboardButton(text='Группа', callback_data="edit_group")]])
+                      InlineKeyboardButton(text='Группа', callback_data="edit_group")],
+                     [InlineKeyboardButton(text='↩️Назад', callback_data="backF")]])
 
 edit_personal_data_teacher = InlineKeyboardMarkup(
     inline_keyboard=[[InlineKeyboardButton(text='💼ФИО', callback_data="edit_teachers_initials"),
-                      InlineKeyboardButton(text='Кафедра', callback_data="edit_teachers_department")]])
+                      InlineKeyboardButton(text='Кафедра', callback_data="edit_teachers_department")],
+                     [InlineKeyboardButton(text='↩️Назад', callback_data="backF")]])
 
 info_about_me = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Личная информация')]], resize_keyboard=True)
 
