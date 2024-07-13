@@ -238,29 +238,29 @@ async def edit_personal_data(callback: types.CallbackQuery):
 @router.callback_query(F.data == 'edit_teachers_initials')
 async def edit_initials_for_teachers_start(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(RegisterForTeachers.initials)
+    await callback.answer('Вы выбрали изменить ФИО')
     await callback.message.answer('Введите новые ФИО', reply_markup=kb.space)
-    await callback.answer()
 
 
 @router.callback_query(F.data == 'edit_students_initials')
 async def edit_initials_for_student_start(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(RegisterForStudents.initials)
+    await callback.answer('Вы выбрали изменить ФИО')
     await callback.message.answer('Введите новые ФИО', reply_markup=kb.space)
-    await callback.answer()
 
 
 @router.callback_query(F.data == 'edit_group')
 async def edit_group(callback: types.CallbackQuery, state: FSMContext):
     await  state.set_state(RegisterForStudents.group)
+    await callback.answer('Вы выбрали изменить группу')
     await callback.message.answer('Введите новую группу', reply_markup=kb.space)
-    await callback.answer()
 
 
 @router.callback_query(F.data == 'edit_teachers_department')
 async def edit_group(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(RegisterForTeachers.departmend)
+    await callback.answer('Вы выбрали изменить группу')
     await callback.message.answer('Введите новую группу', reply_markup=kb.space)
-    await callback.answer()
 
 
 @router.message(F.text == 'ⓘЛичная информация')
@@ -277,6 +277,7 @@ async def main_personal_data(message: types.Message):
 
 @router.callback_query(F.data == 'accept')
 async def acceppted_personal_data(callback: types.CallbackQuery):
+    await callback.answer('Успешно!')
     await callback.message.answer('✅')
 
 
@@ -284,6 +285,17 @@ async def acceppted_personal_data(callback: types.CallbackQuery):
 async def edit_main_persoanl_data(callback: types.CallbackQuery):
     status = await rq.get_user_status(callback.from_user.id)
     if status == 'Студент':
-        await callback.message.reply('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_student)
+        await callback.message.edit_text('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_student)
     else:
-        await callback.message.reply('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_teacher)
+        await callback.message.edit_text('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_teacher)
+
+@router.callback_query(F.data == 'backF')
+async def edit_back(callback: types.CallbackQuery):
+    await callback.answer('Вы вернулись назад')
+    if await rq.get_user_status(callback.from_user.id):
+        await callback.message.edit_text(f'Ваши данные: \n Ваш статус: Студент \n Ваше ФИО: {await rq.get_student_initials(callback.from_user.id)} \n Ваша учебная группа: {await rq.get_student_group(callback.from_user.id)}',
+                                         reply_markup=kb.edit_main_buttons)
+    else:
+        await callback.message.edit_text(
+            f'Ваши данные: \n Ваш статус: Преподаватель \n Ваше ФИО: {await rq.get_teachers_initials(callback.from_user.id)} \n Кафедра: {await rq.get_teachers_department(callback.from_user.id)}',
+            reply_markup=kb.edit_main_buttons)
