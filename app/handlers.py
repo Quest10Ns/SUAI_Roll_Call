@@ -89,19 +89,29 @@ async def register_name_for_teacher(message: types.Message, state: FSMContext):
                              reply_markup=kb.start_buttons)
     else:
         if not await rq.get_teachers_initials(message.from_user.id):
-            await state.update_data(initials=message.text)
-            await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
-            await state.set_state(RegisterForTeachers.departmend)
-            await message.answer('Введите вашу кафедру', reply_markup=kb.back)
-        else:
-            await state.update_data(initials=message.text)
-            await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
-            await state.clear()
-            if await rq.get_teachers_initials(message.from_user.id) == message.text:
-                await message.answer(f'ФИО успешно изменено на {message.text}',
+            cur_initials = await rq.get_right_initials(message.text)
+            if not cur_initials:
+                await message.answer(f'Такого преподавателя не существует. Попробуйте еще раз',
                                      reply_markup=kb.main_buttuns_for_teachers)
             else:
-                await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns_for_teachers)
+                await state.update_data(initials=message.text)
+                await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
+                await state.set_state(RegisterForTeachers.departmend)
+                await message.answer('Введите вашу кафедру', reply_markup=kb.back)
+        else:
+            cur_initials = await rq.get_right_initials(message.text)
+            if not cur_initials:
+                await message.answer(f'Такого преподавателя не существует. Попробуйте еще раз',
+                                     reply_markup=kb.main_buttuns_for_teachers)
+            else:
+                await state.update_data(initials=message.text)
+                await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
+                await state.clear()
+                if await rq.get_teachers_initials(message.from_user.id) == message.text:
+                    await message.answer(f'ФИО успешно изменено на {message.text}',
+                                         reply_markup=kb.main_buttuns_for_teachers)
+                else:
+                    await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns_for_teachers)
 
 
 @router.message(RegisterForTeachers.departmend)
@@ -300,7 +310,9 @@ async def edit_main_persoanl_data(callback: types.CallbackQuery):
 @router.callback_query(F.data == 'backF')
 async def edit_back(callback: types.CallbackQuery):
     await callback.answer('Вы вернулись назад')
-    if await rq.get_user_status(callback.from_user.id):
+    status = await rq.get_user_status(callback.from_user.id)
+
+    if status == 'Студент':
         await callback.message.edit_text(f'Ваши данные: \n Ваш статус: Студент \n Ваше ФИО: {await rq.get_student_initials(callback.from_user.id)} \n Ваша учебная группа: {await rq.get_student_group(callback.from_user.id)}',
                                          reply_markup=kb.edit_main_buttons)
     else:
