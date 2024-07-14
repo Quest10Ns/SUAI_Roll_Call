@@ -140,3 +140,8 @@ async def get_schedule(tg_id):
                 FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
                 schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
                 return schedule
+
+async def get_right_gpoup(student_group):
+    async with async_session() as session:
+        group = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == student_group))
+        return bool(group)
