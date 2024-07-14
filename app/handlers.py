@@ -2,6 +2,7 @@ import asyncio
 import os
 import time
 import logging
+import datetime
 from aiogram import Bot
 from aiogram import types, F, Router
 from aiogram.filters import CommandStart, Command
@@ -11,6 +12,9 @@ import app.keyboads as kb
 import app.database.requests as rq
 import app.database.add_schedule__to_db_for_students as ass
 from dotenv import load_dotenv
+from app.database.models import async_session
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher
+from sqlalchemy import select, update, delete
 
 router = Router()
 
@@ -328,6 +332,25 @@ async def main_schedule(message: types.Message):
             f'Суббота: \n\n{ schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
             f'Ваше ФИО: {await rq.get_teachers_initials(message.from_user.id)}')
 
-# async def check_pair_and_send_message(bot: Bot):
-#     await bot.send_message(f'По расписанию стоит пара.\n Она будет ?', reply_markup=kb.accept_pair_for_teacher)
+async def check_pair_and_send_message(bot: Bot):
+    async with async_session() as session:
+        today = datetime.now().weekday()
+        now = datetime.now().time()
+        start_time = time(9, 15)
+        end_time = time(10, 0)
+        if today == 5 or today == 6:
+            pass
+        else:
+            schedule_check = await session.query(MainScheduleForTeacher).all()
+            for shed in schedule_check:
+                if today == 0:
+                    if start_time <= now <= end_time:
+                        if (shed.Monday is not None) and ('1 пара' in shed.Monday):
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+
+
+
+
+
+
 
