@@ -165,3 +165,22 @@ async def get_schedule_for_certain_teacher(tg_id):
                 mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
                 if mainSchedule:
                     return mainSchedule
+
+
+async def get_right_gpoup(student_group):
+    async with async_session() as session:
+        group = await session.scalar(select(ScheduleForStudent).filter(ScheduleForStudent.group == student_group))
+        return bool(group)
+
+async def get_right_initials(teacher_initials):
+    async with async_session() as session:
+        teacher_initials = teacher_initials.split()
+        result = ''
+        for i in range(len(teacher_initials)):
+            if i == 0:
+                result += teacher_initials[i] + ' '
+            else:
+                result += teacher_initials[i][0] + '.'
+
+        initials = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == result))
+        return bool(initials)
