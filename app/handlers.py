@@ -323,5 +323,13 @@ async def main_schedule(message: types.Message):
             f'Ваша учебная группа: {await rq.get_student_group(message.from_user.id)}'
         )
     else:
+        schedule = await rq.get_schedule(message.from_user.id)
         await message.answer(
-            f'In progress')
+            f'Ваше расписание: \n\n'
+            f'Понедельник: \n\n{ schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
+            f'Вторник: \n\n{ schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
+            f'Среда: \n\n{schedule.Wednesday if schedule.Wednesday else " Пар нет \n"}\n'
+            f'Четверг: \n\n{ schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
+            f'Пятница: \n\n{ schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
+            f'Суббота: \n\n{ schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
+            f'Ваше ФИО: {await rq.get_teachers_initials(message.from_user.id)}')
