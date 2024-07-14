@@ -2,6 +2,7 @@ import asyncio
 import os
 import time
 import logging
+from aiogram import Bot
 from aiogram import types, F, Router
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.state import State, StatesGroup
@@ -90,7 +91,7 @@ async def register_name_for_teacher(message: types.Message, state: FSMContext):
     else:
         if not await rq.get_teachers_initials(message.from_user.id):
             await state.update_data(initials=message.text)
-            await rq.set_student_initials_for_teachers(message.from_user.id, message.text)
+            await rq.set_student_initials_for_teachers(message.from_user.id, message.chat.id, message.text)
             await state.set_state(RegisterForTeachers.departmend)
             await message.answer('Введите вашу кафедру', reply_markup=kb.back)
         else:
@@ -175,7 +176,7 @@ async def register_name_for_student(message: types.Message, state: FSMContext):
     else:
         if not await rq.get_student_initials(message.from_user.id):
             await state.update_data(initials=message.text)
-            await rq.set_student_initials_for_students(message.from_user.id, message.text)
+            await rq.set_student_initials_for_students(message.from_user.id, message.chat.id, message.text)
             await state.set_state(RegisterForStudents.group)
             await message.answer('Введите вашу учебную группу', reply_markup=kb.back)
         else:
@@ -221,6 +222,7 @@ async def edit_personal_data(callback: types.CallbackQuery):
         await callback.message.answer('Отлично, регистрация успешно пройдена!',
                                       reply_markup=kb.main_buttuns_for_student)
     else:
+        await rq.set_schedule_for_certain_teacher(callback.from_user.id)
         await callback.message.answer('Отлично, регистрация успешно пройдена!',
                                       reply_markup=kb.main_buttuns_for_teachers)
     await callback.answer()
@@ -315,7 +317,7 @@ async def main_schedule(message: types.Message):
             f'Ваша учебная группа: {await rq.get_student_group(message.from_user.id)}'
         )
     else:
-        schedule = await rq.get_schedule(message.from_user.id)
+        schedule = await rq.get_schedule_for_certain_teacher(message.from_user.id)
         await message.answer(
             f'Ваше расписание: \n\n'
             f'Понедельник: \n\n{ schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
@@ -325,3 +327,7 @@ async def main_schedule(message: types.Message):
             f'Пятница: \n\n{ schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
             f'Суббота: \n\n{ schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
             f'Ваше ФИО: {await rq.get_teachers_initials(message.from_user.id)}')
+
+# async def check_pair_and_send_message(bot: Bot):
+#     await bot.send_message(f'По расписанию стоит пара.\n Она будет ?', reply_markup=kb.accept_pair_for_teacher)
+
