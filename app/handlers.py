@@ -308,7 +308,8 @@ async def edit_main_persoanl_data(callback: types.CallbackQuery):
 @router.callback_query(F.data == 'backF')
 async def edit_back(callback: types.CallbackQuery):
     await callback.answer('Вы вернулись назад')
-    if await rq.get_user_status(callback.from_user.id):
+    status = rq.get_user_status(callback.from_user.id)
+    if status == 'Студент':
         await callback.message.edit_text(f'Ваши данные: \n Ваш статус: Студент \n Ваше ФИО: {await rq.get_student_initials(callback.from_user.id)} \n Ваша учебная группа: {await rq.get_student_group(callback.from_user.id)}',
                                          reply_markup=kb.edit_main_buttons)
     else:
