@@ -148,7 +148,7 @@ async def set_schedule_for_certain_teacher(tg_id):
             FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
             schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
             if schedule:
-                mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == user.id))
+                mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
                 if not mainSchedule:
                     session.add(MainScheduleForTeacher(teacher_id = teacher.id, Monday=schedule.Monday, Tuesday=schedule.Tuesday, Wednesday = schedule.Wednesday, Thursday = schedule.Thursday, Friday = schedule.Friday, Saturday = schedule.Saturday))
                     await session.commit()
@@ -162,6 +162,6 @@ async def get_schedule_for_certain_teacher(tg_id):
             FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
             schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
             if schedule:
-                mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == user.id))
+                mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
                 if mainSchedule:
                     return mainSchedule

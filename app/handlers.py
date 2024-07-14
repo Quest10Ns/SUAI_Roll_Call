@@ -3,6 +3,7 @@ import os
 import time
 import logging
 import datetime
+import re
 from aiogram import Bot
 from aiogram import types, F, Router
 from aiogram.filters import CommandStart, Command
@@ -613,3 +614,34 @@ async def check_pair_and_send_message(bot: Bot):
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
+
+async def approve_message_for_students(bot: Bot):
+
+
+@router.callback_query(F.data == 'accept_pair')
+async def pair_accepted(callback: types.CallbackQuery):
+    teacher = await rq.get_teacher(callback.from_user.id)
+    schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
+    now = datetime.now().time()
+    today = datetime.now().weekday()
+    start_timeFirst = time(9, 15)
+    end_timeFirst = time(10, 0)
+    start_timeSecond = time(10, 55)
+    end_timeSecond = time(11, 20)
+    start_timeThird = time(12, 45)
+    end_timeThird = time(13, 0)
+    start_timeFourth = time(14, 45)
+    end_timeFourth = time(15, 0)
+    start_timeFifth = time(16, 25)
+    end_timeFifth = time(16, 40)
+    start_timeSix = time(18, 15)
+    end_timeSix = time(18, 30)
+    start_timeSeven = time(19, 55)
+    end_timeSeven = time(20, 10)
+    if today == 0:
+        schedule_string = schedule.Monday
+        if start_timeFirst <= now <= end_timeFirst:
+            pattern = r"1 пара.*?Группа: (\d+)"
+            matches = re.findall(pattern, schedule_string)
+        if start_timeSecond <= now <= end_timeSecond:
+
