@@ -647,6 +647,40 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                 matches = re.findall(pattern, schedule_string)
                 for student in students:
                     if student.gruop in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится в 10:55")
-            if start_timeSecond <= now <= end_timeSecond:
-
+                        await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                pattern = r"2 пара.*?Группа: (\d+)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students:
+                    if student.gruop in matches:
+                        await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                pattern = r"3 пара.*?Группа: (\d+)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students:
+                    if student.gruop in matches:
+                        await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                pattern = r"4 пара.*?Группа: (\d+)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students:
+                    if student.gruop in matches:
+                        await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                pattern = r"5 пара.*?Группа: (\d+)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students:
+                    if student.gruop in matches:
+                        await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                pattern = r"6 пара.*?Группа: (\d+)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students:
+                    if student.gruop in matches:
+                        await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                pattern = r"7 пара.*?Группа: (\d+)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students:
+                    if student.gruop in matches:
+                        await approve_message_for_students(bot, student, "Пара состоится")
