@@ -1,6 +1,6 @@
 import os
 
-from sqlalchemy import BigInteger, String, DateTime, ForeignKey, Text
+from sqlalchemy import BigInteger, String, DateTime, ForeignKey, Text, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from dotenv import load_dotenv
@@ -31,6 +31,7 @@ class Teacher(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
     department = mapped_column(String(4), nullable=True)
+    chat_id = mapped_column(BigInteger)
     user_id = mapped_column(ForeignKey('Users.id'))
 
 
@@ -40,6 +41,7 @@ class Student(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
     group = mapped_column(String(13), nullable=True)
+    chat_id = mapped_column(BigInteger)
     user_id = mapped_column(ForeignKey('Users.id'))
 
 
@@ -66,6 +68,26 @@ class ScheduleForTeacher(Base):
     Thursday = mapped_column(Text, nullable=True)
     Friday = mapped_column(Text, nullable=True)
     Saturday = mapped_column(Text, nullable=True)
+
+class MainScheduleForTeacher(Base):
+    __tablename__ = 'MainScheduleForTeachers'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    teacher_id = mapped_column(ForeignKey('Teachers.id'))
+    Monday = mapped_column(Text, nullable=True)
+    Tuesday = mapped_column(Text, nullable=True)
+    Wednesday = mapped_column(Text, nullable=True)
+    Thursday = mapped_column(Text, nullable=True)
+    Friday = mapped_column(Text, nullable=True)
+    Saturday = mapped_column(Text, nullable=True)
+
+class ListOfPresent(Base):
+    __tablename__ = 'ListOfPresents'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    Teacher = mapped_column(String(100), nullable=True)
+    Pair = mapped_column(Text, nullable=True)
+    group = mapped_column(Text, nullable=True)
+    code = mapped_column(Integer, nullable=True)
+    status = mapped_column(String(8), nullable=True)
 
 async def async_main():
     async with engine.begin() as conn:

@@ -40,3 +40,7 @@ main_buttuns_for_teachers = ReplyKeyboardMarkup(
     keyboard=[[KeyboardButton(text='📅Расписание'), KeyboardButton(text='✅Посещение')],
               [KeyboardButton(text='🏆Рейтинг')],
               [KeyboardButton(text='ⓘЛичная информация')]], resize_keyboard=True)
+
+accept_pair_for_teacher = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='✅', callback_data='accept_pair'),
+     InlineKeyboardButton(text='❌', callback_data='cancel_pair')]])

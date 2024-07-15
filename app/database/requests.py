@@ -1,6 +1,6 @@
 import os
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher
 from sqlalchemy import select, update, delete
 import aiofiles
 
@@ -21,20 +21,18 @@ async def set_user_status(tg_id, status):
             await session.commit()
 
 
-async def set_student_initials_for_teachers(tg_id, initials):
+async def set_student_initials_for_teachers(tg_id, chat_id, initials):
     async with async_session() as session:
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
         if user:
             if user.status == 'Преподаватель':
                 teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
                 if not teacher:
-                    session.add(Teacher(initials=initials, user_id=user.id))
+                    session.add(Teacher(initials=initials, user_id=user.id, chat_id = chat_id))
                     await session.commit()
                 if teacher:
                     teacher.initials = initials
                     await session.commit()
-
-
 async def set_departmend_for_teachers(tg_id, departmend):
     async with async_session() as session:
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
@@ -44,14 +42,14 @@ async def set_departmend_for_teachers(tg_id, departmend):
             await session.commit()
 
 
-async def set_student_initials_for_students(tg_id, initials):
+async def set_student_initials_for_students(tg_id, chat_id, initials):
     async with async_session() as session:
         user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
         if user:
             if user.status == 'Студент':
                 student = await session.scalar(select(Student).filter(Student.user_id == user.id))
                 if not student:
-                    session.add(Student(initials=initials, user_id=user.id))
+                    session.add(Student(initials=initials, chat_id = chat_id ,user_id=user.id))
                     await session.commit()
                 if student:
                     student.initials = initials
@@ -140,6 +138,34 @@ async def get_schedule(tg_id):
                 FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
                 schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
                 return schedule
+
+async def set_schedule_for_certain_teacher(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
+        if teacher:
+            Initials = teacher.initials.split(' ')
+            FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
+            schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
+            if schedule:
+                mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
+                if not mainSchedule:
+                    session.add(MainScheduleForTeacher(teacher_id = teacher.id, Monday=schedule.Monday, Tuesday=schedule.Tuesday, Wednesday = schedule.Wednesday, Thursday = schedule.Thursday, Friday = schedule.Friday, Saturday = schedule.Saturday))
+                    await session.commit()
+
+async def get_schedule_for_certain_teacher(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
+        if teacher:
+            Initials = teacher.initials.split(' ')
+            FIO = f'{Initials[0]} {Initials[1][0]}.{Initials[2][0]}.'
+            schedule = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == FIO))
+            if schedule:
+                mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
+                if mainSchedule:
+                    return mainSchedule
+
 
 async def get_right_gpoup(student_group):
     async with async_session() as session:
