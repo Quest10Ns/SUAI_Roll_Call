@@ -286,7 +286,7 @@ async def edit_group(callback: types.CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == 'edit_teachers_department')
 async def edit_group(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(RegisterForTeachers.departmend)
-    await callback.answer('Вы выбрали изменить группу')
+    await callback.answer('Вы выбрали изменить кафедру')
     await callback.message.answer('Введите новую группу', reply_markup=kb.space)
 
 
