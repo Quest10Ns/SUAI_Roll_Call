@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 import logging
-from datetime import datetime, time
+from datetime import datetime, time, date
 import re
 from aiogram import Bot
 from aiogram import types, F, Router
@@ -478,31 +478,31 @@ async def check_pair_and_send_message(bot: Bot):
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Wednesday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Wednesday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Wednesday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Wednesday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Wednesday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
@@ -646,6 +646,8 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
         now = datetime.now().time()
         today = datetime.now().weekday()
+        today1 = date.fromtimestamp(time.time())
+        current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
         start_timeSecond = time(10, 55)
@@ -664,47 +666,1322 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
             schedule_string = schedule.Monday
             students = await session.execute(select(Student))
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара состоится")
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+        if today == 1:
+            schedule_string = schedule.Tuesday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+        if today == 2:
+            schedule_string = schedule.Wednesday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+        if today == 3:
+            schedule_string = schedule.Thursday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+        if today == 4:
+            schedule_string = schedule.Friday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+        if today == 5:
+            schedule_string = schedule.Saturday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара состоится")
         await callback.answer('Вы подтвердили начало пары', reply_markup = kb.code_generation)
         await callback.message.answer('✅')
 
@@ -716,6 +1993,8 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
         now = datetime.now().time()
         today = datetime.now().weekday()
+        today1 = date.fromtimestamp(time.time())
+        current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
         start_timeSecond = time(10, 55)
@@ -734,49 +2013,1326 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
             schedule_string = schedule.Monday
             students = await session.execute(select(Student))
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                for student in students.scalars():
-                    if student.group in matches:
-                        await approve_message_for_students(bot, student, "Пара не состоится")
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+        elif today == 1:
+            schedule_string = schedule.Tuesday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+        elif today == 2:
+            schedule_string = schedule.Wednesday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+        elif today == 3:
+            schedule_string = schedule.Thursday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+        elif today == 4:
+            schedule_string = schedule.Friday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+        elif today == 5:
+            schedule_string = schedule.Saturday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                if current_week == 1:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|1 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                if current_week == 1:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|2 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                if current_week == 1:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|3 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                if current_week == 1:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|4 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                if current_week == 1:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|5 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                if current_week == 1:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|6 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                if current_week == 1:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) \n|7 пара .* ▲.* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) \n"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
+                else:
+                    pattern = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: ((?:[A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern, schedule_string)
+                    result = []
+                    for i in range(len(matches1[0])):
+                        if len(matches1[0][i]) > 0:
+                            result.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result)):
+                        for j in range(len(result[i])):
+                            if result[i][j] not in groups and result[i][j] != '':
+                                groups.append(result[i][j])
+                    for student in students.scalars():
+                        if student.group in groups:
+                            await approve_message_for_students(bot, student, "Пара не состоится")
         await callback.answer('Вы отменили пару', reply_markup=kb.code_generation)
         await callback.message.answer('❌')
+
+
 
 @router.callback_query(F.data == 'generate_code')
 async def generate_code(callback: types.CallbackQuery):
