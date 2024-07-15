@@ -221,34 +221,49 @@ async def set_data_for_listOfPresent(tg_id, code):
         start_timeSeven = time(19, 55)
         end_timeSeven = time(20, 10)
         if today == 0:
+            schedule_string = mainSchedule.Monday
             if start_timeFirst <= now <= end_timeFirst:
-                schedule_string = mainSchedule.Monday
                 pattern = r"1 пара.*?(?=Группа:)"
+                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
             elif start_timeSecond <= now <= end_timeSecond:
-                schedule_string = mainSchedule.Monday
                 pattern = r"2 пара.*?(?=Группа:)"
+                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
             elif start_timeThird <= now <= end_timeThird:
-                schedule_string = mainSchedule.Monday
                 pattern = r"3 пара.*?(?=Группа:)"
+                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
             elif start_timeFourth <= now <= end_timeFourth:
-                schedule_string = mainSchedule.Monday
                 pattern = r"4 пара.*?(?=Группа:)"
+                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
             elif start_timeFifth <= now <= end_timeFifth:
-                schedule_string = mainSchedule.Monday
                 pattern = r"5 пара.*?(?=Группа:)"
+                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
             elif start_timeSix <= now <= end_timeSix:
-                schedule_string = mainSchedule.Monday
                 pattern = r"6 пара.*?(?=Группа:)"
+                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
             elif start_timeSeven <= now <= end_timeSeven:
-                schedule_string = mainSchedule.Monday
                 pattern = r"7 пара.*?(?=Группа:)"
+                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-        list_of_present = ListOfPresent(teacher=teacher.initials, teacher_id=teacher.id)
+                matchesGroup = re.findall(patternGruoup, schedule_string)
+                groups = ', '.join(matchesGroup)
+        list_of_present = ListOfPresent(Teacher=teacher.initials, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id)
         session.add(list_of_present)
         await session.commit()
