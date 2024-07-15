@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 import logging
-import datetime
+from datetime import datetime, time
 import re
 from aiogram import Bot
 from aiogram import types, F, Router
@@ -375,8 +375,8 @@ async def check_pair_and_send_message(bot: Bot):
         if today == 6:
             pass
         else:
-            schedule_check = await session.query(MainScheduleForTeacher).all()
-            for shed in schedule_check:
+            schedule_check = await session.execute(select(MainScheduleForTeacher))
+            for shed in schedule_check.scalars():
                 if today == 0:
                     if start_timeFirst <= now <= end_timeFirst:
                         if (shed.Monday is not None) and ('1 пара' in shed.Monday):
@@ -386,252 +386,252 @@ async def check_pair_and_send_message(bot: Bot):
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSecond <= now <= end_timeSecond:
                         if (shed.Monday is not None) and ('2 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит вторая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Monday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Monday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Monday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Monday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Monday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                 elif today == 1:
                     if start_timeFirst <= now <= end_timeFirst:
                         if (shed.Tuesday is not None) and ('1 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит первая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSecond <= now <= end_timeSecond:
                         if (shed.Tuesday is not None) and ('2 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит вторая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Tuesday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Tuesday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Tuesday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Tuesday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Tuesday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                 elif today == 2:
                     if start_timeFirst <= now <= end_timeFirst:
                         if (shed.Wednesday is not None) and ('1 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит первая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSecond <= now <= end_timeSecond:
                         if (shed.Wednesday is not None) and ('2 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит вторая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Wednesday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Wednesday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Wednesday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Wednesday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Wednesday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shedteacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                 elif today == 3:
                     if start_timeFirst <= now <= end_timeFirst:
                         if (shed.Thursday is not None) and ('1 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит первая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSecond <= now <= end_timeSecond:
                         if (shed.Thursday is not None) and ('2 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит вторая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Thursday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Thursday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Thursday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Thursday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Thursday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                 elif today == 4:
                     if start_timeFirst <= now <= end_timeFirst:
                         if (shed.Friday is not None) and ('1 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит первая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSecond <= now <= end_timeSecond:
                         if (shed.Friday is not None) and ('2 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит вторая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Friday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Friday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Friday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Friday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Friday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                 elif today == 5:
                     if start_timeFirst <= now <= end_timeFirst:
                         if (shed.Saturday is not None) and ('1 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит первая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSecond <= now <= end_timeSecond:
                         if (shed.Saturday is not None) and ('2 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит вторая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeThird <= now <= end_timeThird:
                         if (shed.Saturday is not None) and ('3 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит третья пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFourth <= now <= end_timeFourth:
                         if (shed.Saturday is not None) and ('4 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит четвертая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeFifth <= now <= end_timeFifth:
                         if (shed.Saturday is not None) and ('5 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит пятая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSix <= now <= end_timeSix:
                         if (shed.Saturday is not None) and ('6 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит шестая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
                     elif start_timeSeven <= now <= end_timeSeven:
                         if (shed.Saturday is not None) and ('7 пара' in shed.Monday):
-                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.telegram_id))
+                            teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == shed.teacher_id))
                             await bot.send_message(chat_id=teacher.chat_id,
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
@@ -662,46 +662,125 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         end_timeSeven = time(20, 10)
         if today == 0:
             schedule_string = schedule.Monday
-            students = await session.query(Student).all()
+            students = await session.execute(select(Student))
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?Группа: (\d+)"
+                pattern = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?Группа: (\d+)"
+                pattern = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?Группа: (\d+)"
+                pattern = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?Группа: (\d+)"
+                pattern = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?Группа: (\d+)"
+                pattern = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?Группа: (\d+)"
+                pattern = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?Группа: (\d+)"
+                pattern = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
                 matches = re.findall(pattern, schedule_string)
-                for student in students:
-                    if student.gruop in matches:
+                for student in students.scalars():
+                    if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
+        await callback.answer('Вы подтвердили начало пары', reply_markup = kb.code_generation)
+        await callback.message.answer('✅')
+
+
+@router.callback_query(F.data == 'cancel_pair')
+async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
+    async with async_session() as session:
+        teacher = await rq.get_teacher(callback.from_user.id)
+        schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
+        now = datetime.now().time()
+        today = datetime.now().weekday()
+        start_timeFirst = time(9, 15)
+        end_timeFirst = time(10, 0)
+        start_timeSecond = time(10, 55)
+        end_timeSecond = time(11, 20)
+        start_timeThird = time(12, 45)
+        end_timeThird = time(13, 0)
+        start_timeFourth = time(14, 45)
+        end_timeFourth = time(15, 0)
+        start_timeFifth = time(16, 25)
+        end_timeFifth = time(16, 40)
+        start_timeSix = time(18, 15)
+        end_timeSix = time(18, 30)
+        start_timeSeven = time(19, 55)
+        end_timeSeven = time(20, 10)
+        if today == 0:
+            schedule_string = schedule.Monday
+            students = await session.execute(select(Student))
+            if start_timeFirst <= now <= end_timeFirst:
+                pattern = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSecond <= now <= end_timeSecond:
+                pattern = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeThird <= now <= end_timeThird:
+                pattern = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFourth <= now <= end_timeFourth:
+                pattern = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeFifth <= now <= end_timeFifth:
+                pattern = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSix <= now <= end_timeSix:
+                pattern = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+            elif start_timeSeven <= now <= end_timeSeven:
+                pattern = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
+                matches = re.findall(pattern, schedule_string)
+                for student in students.scalars():
+                    if student.group in matches:
+                        await approve_message_for_students(bot, student, "Пара не состоится")
+        await callback.answer('Вы отменили пару', reply_markup=kb.code_generation)
+        await callback.message.answer('❌')
+
+@router.callback_query(F.data == 'generate_code')
+async def generate_code(callback: types.CallbackQuery):
+    teacher = await rq.get_teacher(callback.from_user.id)
+    schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
+    await callback.answer('In progress')
+    await callback.message.answer('✅')

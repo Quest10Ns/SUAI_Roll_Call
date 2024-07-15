@@ -184,3 +184,8 @@ async def get_right_initials(teacher_initials):
 
         initials = await session.scalar(select(ScheduleForTeacher).filter(ScheduleForTeacher.Teacher == result))
         return bool(initials)
+
+async def set_data_for_listOfPresent(tg_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).filter(User.telegram_id == tg_id))
+        teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
