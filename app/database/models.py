@@ -88,6 +88,7 @@ class ListOfPresent(Base):
     group = mapped_column(Text, nullable=True)
     code = mapped_column(Integer, nullable=True)
     status = mapped_column(String(8), nullable=True)
+    teacher_id = mapped_column(ForeignKey('Teachers.id'))
 
 async def async_main():
     async with engine.begin() as conn:
