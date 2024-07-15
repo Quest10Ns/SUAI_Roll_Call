@@ -44,3 +44,6 @@ main_buttuns_for_teachers = ReplyKeyboardMarkup(
 accept_pair_for_teacher = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅', callback_data='accept_pair'),
      InlineKeyboardButton(text='❌', callback_data='cancel_pair')]])
+
+code_generation = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Сгенерировать код присутствия', callback_data='generate_code')]])
