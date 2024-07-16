@@ -3,7 +3,7 @@ from app.database.models import async_session
 from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, \
     ListOfPresent
 from sqlalchemy import select, update, delete
-from datetime import datetime, time
+from datetime import datetime, time, date
 import aiofiles
 import re
 
@@ -205,6 +205,8 @@ async def set_data_for_listOfPresent(tg_id, code):
         teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
         mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
         today = datetime.now().weekday()
+        today1 = date.fromtimestamp(time.time())
+        current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         now = datetime.now().time()
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
@@ -223,267 +225,1737 @@ async def set_data_for_listOfPresent(tg_id, code):
         if today == 0:
             schedule_string = mainSchedule.Monday
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?(?=Группа:)"
-                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?(?=Группа:)"
-                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?(?=Группа:)"
-                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?(?=Группа:)"
-                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?(?=Группа:)"
-                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?(?=Группа:)"
-                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?(?=Группа:)"
-                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
         elif today == 1:
             schedule_string = mainSchedule.Tuesday
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?(?=Группа:)"
-                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?(?=Группа:)"
-                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?(?=Группа:)"
-                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?(?=Группа:)"
-                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?(?=Группа:)"
-                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?(?=Группа:)"
-                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?(?=Группа:)"
-                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
         elif today == 2:
             schedule_string = mainSchedule.Wednesday
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?(?=Группа:)"
-                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?(?=Группа:)"
-                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?(?=Группа:)"
-                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?(?=Группа:)"
-                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?(?=Группа:)"
-                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?(?=Группа:)"
-                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?(?=Группа:)"
-                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
         elif today == 3:
             schedule_string = mainSchedule.Thursday
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?(?=Группа:)"
-                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?(?=Группа:)"
-                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?(?=Группа:)"
-                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?(?=Группа:)"
-                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?(?=Группа:)"
-                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?(?=Группа:)"
-                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?(?=Группа:)"
-                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
         elif today == 4:
             schedule_string = mainSchedule.Friday
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?(?=Группа:)"
-                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?(?=Группа:)"
-                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?(?=Группа:)"
-                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?(?=Группа:)"
-                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?(?=Группа:)"
-                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?(?=Группа:)"
-                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?(?=Группа:)"
-                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
         elif today == 5:
             schedule_string = mainSchedule.Saturday
             if start_timeFirst <= now <= end_timeFirst:
-                pattern = r"1 пара.*?(?=Группа:)"
-                patternGruoup = r"1 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_gruoup, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
-                pattern = r"2 пара.*?(?=Группа:)"
-                patternGruoup = r"2 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
-                pattern = r"3 пара.*?(?=Группа:)"
-                patternGruoup = r"3 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
-                pattern = r"4 пара.*?(?=Группа:)"
-                patternGruoup = r"4 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
-                pattern = r"5 пара.*?(?=Группа:)"
-                patternGruoup = r"5 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
-                pattern = r"6 пара.*?(?=Группа:)"
-                patternGruoup = r"6 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
-                pattern = r"7 пара.*?(?=Группа:)"
-                patternGruoup = r"7 пара.*?Группа: (\d+[A-ZА-Я]*)"
-                matches = re.findall(pattern, schedule_string)
-                matchesGroup = re.findall(patternGruoup, schedule_string)
-                groups = ', '.join(matchesGroup)
+                if current_week == 1:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                else:
+                    pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▼ [ПРЛ]+ – (.*) –"
+                    pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▼ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
+                    matches1 = re.findall(pattern_lesson, schedule_string)
+                    result1 = []
+                    for i in range(len(matches1)):
+                        for j in range(len(matches1[i])):
+                            if matches1[i][j] != '':
+                                result1.append(matches1[i][j])
+                    result2 = []
+                    matches2 = re.findall(pattern_group, schedule_string)
+                    for i in range(len(matches2[0])):
+                        if len(matches2[0][i]) > 0:
+                            result2.append((matches1[0][i]).split(' ; '))
+                    groups = []
+                    for i in range(len(result2)):
+                        for j in range(len(result2[i])):
+                            if result2[i][j] not in groups and result2[i][j] != '':
+                                groups.append(result2[i][j])
+                matches = result1
+                groups = ' '.join(groups)
         list_of_present = ListOfPresent(Teacher=teacher.initials, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id)
         session.add(list_of_present)
         await session.commit()
