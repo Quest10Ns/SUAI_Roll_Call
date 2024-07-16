@@ -1,9 +1,10 @@
 import os
 
-from sqlalchemy import BigInteger, String, DateTime, ForeignKey, Text, Integer
+from sqlalchemy import BigInteger, String, DateTime, ForeignKey, Text, Integer, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 engine = create_async_engine(url=os.getenv('SQLALCHEMY_URL'))
@@ -83,6 +84,7 @@ class MainScheduleForTeacher(Base):
 class ListOfPresent(Base):
     __tablename__ = 'ListOfPresents'
     id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[Date] = mapped_column(Date, default=datetime.now().date())
     Teacher = mapped_column(String(100), nullable=True)
     Pair = mapped_column(Text, nullable=True)
     group = mapped_column(Text, nullable=True)
