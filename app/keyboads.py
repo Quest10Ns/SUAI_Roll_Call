@@ -47,3 +47,6 @@ accept_pair_for_teacher = InlineKeyboardMarkup(inline_keyboard=[
 
 code_generation = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Сгенерировать код присутствия', callback_data='generate_code')]])
+
+accept_roll = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Подтвердить присутствие', callback_data='accept__roll')]])

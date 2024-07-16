@@ -2,7 +2,7 @@ import asyncio
 import os
 import time
 import logging
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 import re
 from aiogram import Bot
 from aiogram import types, F, Router
@@ -14,12 +14,14 @@ import app.database.requests as rq
 import app.database.add_schedule__to_db_for_students as ass
 from dotenv import load_dotenv
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher
-from sqlalchemy import select, update, delete
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, \
+    ListOfPresent
+from sqlalchemy import select, update, delete, and_
 
 router = Router()
 
 attempts = {}
+
 
 class RegisterForTeachers(StatesGroup):
     initials = State()
@@ -36,12 +38,20 @@ class RegisterUsers(StatesGroup):
     status = State()
 
 
+class RegisterCode(StatesGroup):
+    code = State()
+
+class RegisterAsPresent(StatesGroup):
+    code = State()
+
+
 @router.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     if (await rq.get_user_status(message.from_user.id) and (
             ((await rq.get_student_group(message.from_user.id) is not None) and (
                     (await rq.get_student_initials(message.from_user.id) is not None)) or (
-                    (await rq.get_teachers_initials(message.from_user.id) is not None) and (await rq.get_teachers_department(message.from_user.id) is not None))))):
+                     (await rq.get_teachers_initials(message.from_user.id) is not None) and (
+                     await rq.get_teachers_department(message.from_user.id) is not None))))):
         if await rq.get_student(message.from_user.id):
             await message.answer('И снова здравствуйте', reply_markup=kb.main_buttuns_for_student)
         elif await rq.get_teacher(message.from_user.id):
@@ -176,10 +186,9 @@ async def register_verification_code(message: types.Message, state: FSMContext):
                 await message.answer('Неверный код доступа. Попробуйте еще раз через 60 секунд', reply_markup=kb.back)
             else:
                 await state.set_state(RegisterForTeachers.verification_code)
-                await message.answer(f'Неверный код доступа. Попробуйте еще раз. Осталось попыток: {3 - attempts[user_id]["count"]}',
-                                     reply_markup=kb.back)
-
-
+                await message.answer(
+                    f'Неверный код доступа. Попробуйте еще раз. Осталось попыток: {3 - attempts[user_id]["count"]}',
+                    reply_markup=kb.back)
 
 
 @router.message(RegisterForStudents.initials)
@@ -215,7 +224,8 @@ async def register_group(message: types.Message, state: FSMContext):
         if not await rq.get_student_group(message.from_user.id):
             cur_group = await rq.get_right_gpoup(message.text)  # Добавляем await здесь
             if not cur_group:
-                await message.answer(f'Такой группы не существует. Попробуйте еще раз', reply_markup=kb.main_buttuns_for_student)
+                await message.answer(f'Такой группы не существует. Попробуйте еще раз',
+                                     reply_markup=kb.main_buttuns_for_student)
             else:
                 await state.update_data(group=message.text)
                 await rq.set_group_for_student(message.from_user.id, message.text)
@@ -227,7 +237,8 @@ async def register_group(message: types.Message, state: FSMContext):
         else:
             cur_group = await rq.get_right_gpoup(message.text)  # Добавляем await здесь
             if not cur_group:
-                await message.answer(f'Такой группы не существует. Попробуйте еще раз', reply_markup=kb.main_buttuns_for_student)
+                await message.answer(f'Такой группы не существует. Попробуйте еще раз',
+                                     reply_markup=kb.main_buttuns_for_student)
             else:
                 await state.update_data(group=message.text)
                 await rq.set_group_for_student(message.from_user.id, message.text)
@@ -237,8 +248,6 @@ async def register_group(message: types.Message, state: FSMContext):
                                          reply_markup=kb.main_buttuns_for_student)
                 else:
                     await message.answer(f'Изменить не удалось', reply_markup=kb.main_buttuns_for_student)
-
-
 
 
 @router.callback_query(F.data == 'data_is_right')
@@ -316,17 +325,20 @@ async def edit_main_persoanl_data(callback: types.CallbackQuery):
     else:
         await callback.message.edit_text('Выберите, что Вы хотите изменить', reply_markup=kb.edit_personal_data_teacher)
 
+
 @router.callback_query(F.data == 'backF')
 async def edit_back(callback: types.CallbackQuery):
     await callback.answer('Вы вернулись назад')
     status = rq.get_user_status(callback.from_user.id)
     if status == 'Студент':
-        await callback.message.edit_text(f'Ваши данные: \n Ваш статус: Студент \n Ваше ФИО: {await rq.get_student_initials(callback.from_user.id)} \n Ваша учебная группа: {await rq.get_student_group(callback.from_user.id)}',
-                                         reply_markup=kb.edit_main_buttons)
+        await callback.message.edit_text(
+            f'Ваши данные: \n Ваш статус: Студент \n Ваше ФИО: {await rq.get_student_initials(callback.from_user.id)} \n Ваша учебная группа: {await rq.get_student_group(callback.from_user.id)}',
+            reply_markup=kb.edit_main_buttons)
     else:
         await callback.message.edit_text(
             f'Ваши данные: \n Ваш статус: Преподаватель \n Ваше ФИО: {await rq.get_teachers_initials(callback.from_user.id)} \n Кафедра: {await rq.get_teachers_department(callback.from_user.id)}',
             reply_markup=kb.edit_main_buttons)
+
 
 @router.message(F.text == '📅Расписание')
 async def main_schedule(message: types.Message):
@@ -334,25 +346,26 @@ async def main_schedule(message: types.Message):
         schedule = await rq.get_schedule(message.from_user.id)
         await message.answer(
             f'Ваше расписание: \n\n'
-            f'Понедельник: \n\n{ schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
-            f'Вторник: \n\n{ schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
+            f'Понедельник: \n\n{schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
+            f'Вторник: \n\n{schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
             f'Среда: \n\n{schedule.Wednesday if schedule.Wednesday else " Пар нет \n"}\n'
-            f'Четверг: \n\n{ schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
-            f'Пятница: \n\n{ schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
-            f'Суббота: \n\n{ schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
+            f'Четверг: \n\n{schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
+            f'Пятница: \n\n{schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
+            f'Суббота: \n\n{schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
             f'Ваша учебная группа: {await rq.get_student_group(message.from_user.id)}'
         )
     else:
         schedule = await rq.get_schedule_for_certain_teacher(message.from_user.id)
         await message.answer(
             f'Ваше расписание: \n\n'
-            f'Понедельник: \n\n{ schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
-            f'Вторник: \n\n{ schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
+            f'Понедельник: \n\n{schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
+            f'Вторник: \n\n{schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
             f'Среда: \n\n{schedule.Wednesday if schedule.Wednesday else " Пар нет \n"}\n'
-            f'Четверг: \n\n{ schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
-            f'Пятница: \n\n{ schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
-            f'Суббота: \n\n{ schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
+            f'Четверг: \n\n{schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
+            f'Пятница: \n\n{schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
+            f'Суббота: \n\n{schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
             f'Ваше ФИО: {await rq.get_teachers_initials(message.from_user.id)}')
+
 
 async def check_pair_and_send_message(bot: Bot):
     async with async_session() as session:
@@ -636,8 +649,10 @@ async def check_pair_and_send_message(bot: Bot):
                                                    text='По расписанию стоит седьмая пара.\n Она будет?',
                                                    reply_markup=kb.accept_pair_for_teacher)
 
+
 async def approve_message_for_students(bot: Bot, student: Student, message: str):
     await bot.send_message(chat_id=student.chat_id, text=message)
+
 
 @router.callback_query(F.data == 'accept_pair')
 async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
@@ -705,7 +720,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                 for student in students.scalars():
                     if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара состоится")
-        await callback.answer('Вы подтвердили начало пары', reply_markup = kb.code_generation)
+        await callback.answer('Вы подтвердили начало пары', reply_markup=kb.code_generation)
         await callback.message.answer('✅')
 
 
@@ -775,12 +790,75 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                 for student in students.scalars():
                     if student.group in matches:
                         await approve_message_for_students(bot, student, "Пара не состоится")
-        await callback.answer('Вы отменили пару', reply_markup=kb.code_generation)
+        await callback.answer('Вы отменили пару')
         await callback.message.answer('❌')
 
+
 @router.callback_query(F.data == 'generate_code')
-async def generate_code(callback: types.CallbackQuery):
-    teacher = await rq.get_teacher(callback.from_user.id)
-    schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
+async def generate_code(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(RegisterCode.code)
     await callback.answer('In progress')
-    await callback.message.answer('✅')
+    await callback.message.answer('Введите код для подтверждения присутсвия студентами')
+
+async def approve_message_for_students_roll(bot: Bot, student: Student, message: str):
+    await bot.send_message(chat_id=student.chat_id, text=message, reply_markup=kb.accept_roll)
+
+@router.message(RegisterCode.code)
+async def generate_code_main_state(message: types.Message, state: FSMContext, bot: Bot):
+    await state.update_data(code=message.text)
+    await rq.set_data_for_listOfPresent(message.from_user.id, message.text)
+    ten_minutes_later = datetime.now() + timedelta(minutes=10)
+    time_string = ten_minutes_later.strftime("%H:%M")
+    async with async_session() as session:
+        teacher = await rq.get_teacher(message.from_user.id)
+        schedule = await rq.get_schedule_for_certain_teacher(message.from_user.id)
+        listOfpresent = await session.scalar(
+            select(ListOfPresent).filter(and_(ListOfPresent.teacher_id == teacher.id, ListOfPresent.status == 'open')))
+        now = datetime.now().time()
+        today = datetime.now().weekday()
+        start_timeFirst = time(9, 15)
+        end_timeFirst = time(10, 0)
+        start_timeSecond = time(10, 55)
+        end_timeSecond = time(11, 20)
+        start_timeThird = time(12, 45)
+        end_timeThird = time(13, 0)
+        start_timeFourth = time(14, 45)
+        end_timeFourth = time(15, 0)
+        start_timeFifth = time(16, 25)
+        end_timeFifth = time(16, 40)
+        start_timeSix = time(18, 15)
+        end_timeSix = time(18, 30)
+        start_timeSeven = time(19, 55)
+        end_timeSeven = time(20, 10)
+        students = await session.execute(select(Student))
+        pattern = listOfpresent.group
+        for student in students.scalars():
+            if student.group in pattern:
+                await approve_message_for_students_roll(bot, student, "Преподаватель начал перекличку")
+    await message.reply(
+        f'Код успешно создан у студентов есть 10 минут, чтобы пройти перекличку. То есть до {time_string}.')
+    await state.clear()
+
+@router.callback_query(F.data == 'accept__roll')
+async def generate_code(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(RegisterAsPresent.code)
+    await callback.answer('In progress')
+    await callback.message.answer('Введите код, чтобы подтвердить присутствие')
+
+@router.message(RegisterCode.code)
+async def generate_code_main_state(message: types.Message, state: FSMContext):
+    await state.update_data(code=message.text)
+    async with async_session() as session:
+        student = await rq.get_student(message.from_user.id)
+        listOfpresents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
+        for listOfpresent in listOfpresents:
+            if student.group in listOfpresent.group:
+                if message.text == listOfpresent.code:
+                    students = listOfpresent.students
+                    if students:
+                        students += f", {student.initials}"
+                    else:
+                        students = student.initials
+                    listOfpresent.students = students
+                    await session.commit()
+
