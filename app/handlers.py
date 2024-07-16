@@ -846,4 +846,5 @@ async def generate_code_main_state(message: types.Message, state: FSMContext):
                         students = student.initials
                     listOfpresent.students = students
                     await session.commit()
+    await state.clear()
 
