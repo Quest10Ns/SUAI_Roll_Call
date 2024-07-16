@@ -4,6 +4,7 @@ from app.database.models import User, Teacher, Student, ScheduleForStudent, Sche
     ListOfPresent
 from sqlalchemy import select, update, delete
 from datetime import datetime, time, date
+import time as tim
 import aiofiles
 import re
 
@@ -205,13 +206,13 @@ async def set_data_for_listOfPresent(tg_id, code):
         teacher = await session.scalar(select(Teacher).filter(Teacher.user_id == user.id))
         mainSchedule = await session.scalar(select(MainScheduleForTeacher).filter(MainScheduleForTeacher.teacher_id == teacher.id))
         today = datetime.now().weekday()
-        today1 = date.fromtimestamp(time.time())
+        today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         now = datetime.now().time()
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
-        start_timeSecond = time(10, 55)
-        end_timeSecond = time(11, 20)
+        start_timeSecond = time(22, 10)
+        end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -238,7 +239,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -257,7 +258,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -279,7 +280,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -298,7 +299,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -320,7 +321,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -339,7 +340,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -361,7 +362,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -380,7 +381,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -402,7 +403,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -421,7 +422,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -443,7 +444,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -462,7 +463,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -484,7 +485,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -503,7 +504,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -527,7 +528,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -546,7 +547,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -568,7 +569,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -587,7 +588,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -609,7 +610,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -628,7 +629,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -650,7 +651,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -669,7 +670,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -691,7 +692,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -710,7 +711,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -732,7 +733,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -751,7 +752,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -773,7 +774,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -792,7 +793,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -816,7 +817,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -835,7 +836,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -857,7 +858,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -876,7 +877,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -898,7 +899,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -917,7 +918,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -939,7 +940,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -958,7 +959,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -980,7 +981,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -999,7 +1000,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1021,7 +1022,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1040,7 +1041,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1062,7 +1063,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1081,7 +1082,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1105,7 +1106,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1124,7 +1125,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1146,7 +1147,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1165,7 +1166,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1187,7 +1188,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1206,7 +1207,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1228,7 +1229,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1247,7 +1248,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1269,7 +1270,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1288,7 +1289,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1310,7 +1311,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1329,7 +1330,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1351,7 +1352,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1370,7 +1371,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1394,7 +1395,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1413,7 +1414,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1435,7 +1436,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1454,7 +1455,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1476,7 +1477,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1495,7 +1496,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1517,7 +1518,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1536,7 +1537,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1558,7 +1559,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1577,7 +1578,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1599,7 +1600,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1618,7 +1619,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1640,7 +1641,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1659,7 +1660,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1683,7 +1684,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1702,7 +1703,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_gruoup, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1724,7 +1725,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1743,7 +1744,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1765,7 +1766,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1784,7 +1785,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1806,7 +1807,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1825,7 +1826,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1847,7 +1848,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1866,7 +1867,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1888,7 +1889,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1907,7 +1908,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1929,7 +1930,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):
@@ -1948,7 +1949,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                     matches2 = re.findall(pattern_group, schedule_string)
                     for i in range(len(matches2[0])):
                         if len(matches2[0][i]) > 0:
-                            result2.append((matches1[0][i]).split(' ; '))
+                            result2.append((matches2[0][i]).split(' ; '))
                     groups = []
                     for i in range(len(result2)):
                         for j in range(len(result2[i])):

@@ -1,6 +1,6 @@
 import asyncio
 import os
-import time
+import time as tim
 import logging
 from datetime import datetime, time, timedelta, date
 import re
@@ -165,7 +165,7 @@ async def register_verification_code(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     if user_id not in attempts:
         attempts[user_id] = {'count': 0, 'cooldown': 0}
-    current_time = time.time()
+    current_time = tim.time()
 
     if current_time < attempts[user_id]['cooldown']:
         remaining_time = int(attempts[user_id]['cooldown'] - current_time)
@@ -379,8 +379,8 @@ async def check_pair_and_send_message(bot: Bot):
         now = datetime.now().time()
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
-        start_timeSecond = time(10, 55)
-        end_timeSecond = time(11, 20)
+        start_timeSecond = time(22, 10)
+        end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -709,12 +709,12 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
         now = datetime.now().time()
         today = datetime.now().weekday()
-        today1 = date.fromtimestamp(time.time())
+        today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
-        start_timeSecond = time(10, 55)
-        end_timeSecond = time(11, 20)
+        start_timeSecond = time(22, 10)
+        end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -2045,8 +2045,8 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                     for student in students.scalars():
                         if student.group in groups:
                             await approve_message_for_students(bot, student, "Пара состоится")
-        await callback.answer('Вы подтвердили начало пары', reply_markup = kb.code_generation)
-        await callback.message.answer('✅')
+        await callback.answer('✅')
+        await callback.message.answer('Вы подтвердили начало пары', reply_markup = kb.code_generation)
 
 
 
@@ -2057,12 +2057,12 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         schedule = await rq.get_schedule_for_certain_teacher(callback.from_user.id)
         now = datetime.now().time()
         today = datetime.now().weekday()
-        today1 = date.fromtimestamp(time.time())
+        today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
         end_timeFirst = time(10, 0)
-        start_timeSecond = time(10, 55)
-        end_timeSecond = time(11, 20)
+        start_timeSecond = time(22, 10)
+        end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -3393,8 +3393,8 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                     for student in students.scalars():
                         if student.group in groups:
                             await approve_message_for_students(bot, student, "Пара не состоится")
-        await callback.answer('Вы отменили пару', reply_markup=kb.code_generation)
-        await callback.message.answer('❌')
+        await callback.answer('❌')
+        await callback.message.answer('Вы отменили пару')
 
 @router.callback_query(F.data == 'generate_code')
 async def generate_code(callback: types.CallbackQuery, state: FSMContext):
