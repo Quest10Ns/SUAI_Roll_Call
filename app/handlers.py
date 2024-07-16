@@ -815,21 +815,6 @@ async def generate_code_main_state(message: types.Message, state: FSMContext, bo
         listOfpresent = await session.scalar(
             select(ListOfPresent).filter(and_(ListOfPresent.teacher_id == teacher.id, ListOfPresent.status == 'open')))
         now = datetime.now().time()
-        today = datetime.now().weekday()
-        start_timeFirst = time(9, 15)
-        end_timeFirst = time(10, 0)
-        start_timeSecond = time(10, 55)
-        end_timeSecond = time(11, 20)
-        start_timeThird = time(12, 45)
-        end_timeThird = time(13, 0)
-        start_timeFourth = time(14, 45)
-        end_timeFourth = time(15, 0)
-        start_timeFifth = time(16, 25)
-        end_timeFifth = time(16, 40)
-        start_timeSix = time(18, 15)
-        end_timeSix = time(18, 30)
-        start_timeSeven = time(19, 55)
-        end_timeSeven = time(20, 10)
         students = await session.execute(select(Student))
         pattern = listOfpresent.group
         for student in students.scalars():
