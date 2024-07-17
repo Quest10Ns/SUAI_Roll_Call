@@ -89,7 +89,7 @@ class ListOfPresent(Base):
     Pair = mapped_column(Text, nullable=True)
     group = mapped_column(Text, nullable=True)
     students = mapped_column(Text, nullable=True)
-    code = mapped_column(Integer, nullable=True)
+    code = mapped_column(String(15), nullable=True)
     status = mapped_column(String(8), nullable=True)
     teacher_id = mapped_column(ForeignKey('Teachers.id'))
 

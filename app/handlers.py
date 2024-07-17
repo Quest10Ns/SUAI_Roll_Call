@@ -13,6 +13,7 @@ import app.keyboads as kb
 import app.database.requests as rq
 import app.database.add_schedule__to_db_for_students as ass
 from dotenv import load_dotenv
+from aiogram.types import location
 from app.database.models import async_session
 from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, \
     ListOfPresent
@@ -22,12 +23,14 @@ router = Router()
 
 attempts = {}
 
+
 def get_lesson_name(schedule, lesson_number):
     pattern = rf"{lesson_number}.*?– (.+?) –"
     match = re.search(pattern, schedule)
     if match:
         return match.group(1)
     return None
+
 
 class RegisterForTeachers(StatesGroup):
     initials = State()
@@ -47,8 +50,10 @@ class RegisterUsers(StatesGroup):
 class RegisterCode(StatesGroup):
     code = State()
 
+
 class RegisterAsPresent(StatesGroup):
     code = State()
+    location = State()
 
 
 @router.message(CommandStart())
@@ -211,7 +216,7 @@ async def register_name_for_student(message: types.Message, state: FSMContext):
             await message.answer('Введите вашу учебную группу', reply_markup=kb.back)
         else:
             await state.update_data(initials=message.text)
-            await rq.set_student_initials_for_students(message.from_user.id, message.text)
+            await rq.set_student_initials_for_students(message.from_user.id, message.chat.id, message.text)
             await state.clear()
             if await rq.get_student_initials(message.from_user.id) == message.text:
                 await message.answer(f'ФИО успешно изменено на {message.text}',
@@ -228,10 +233,10 @@ async def register_group(message: types.Message, state: FSMContext):
                              reply_markup=kb.start_buttons)
     else:
         if not await rq.get_student_group(message.from_user.id):
-            cur_group = await rq.get_right_gpoup(message.text)  # Добавляем await здесь
+            cur_group = await rq.get_right_gpoup(message.text)
             if not cur_group:
                 await message.answer(f'Такой группы не существует. Попробуйте еще раз',
-                                     reply_markup=kb.main_buttuns_for_student)
+                                     reply_markup=kb.space)
             else:
                 await state.update_data(group=message.text)
                 await rq.set_group_for_student(message.from_user.id, message.text)
@@ -241,10 +246,10 @@ async def register_group(message: types.Message, state: FSMContext):
                     reply_markup=kb.edit_button)
                 await state.clear()
         else:
-            cur_group = await rq.get_right_gpoup(message.text)  # Добавляем await здесь
+            cur_group = await rq.get_right_gpoup(message.text)
             if not cur_group:
                 await message.answer(f'Такой группы не существует. Попробуйте еще раз',
-                                     reply_markup=kb.main_buttuns_for_student)
+                                     reply_markup=kb.space)
             else:
                 await state.update_data(group=message.text)
                 await rq.set_group_for_student(message.from_user.id, message.text)
@@ -384,7 +389,7 @@ async def check_pair_and_send_message(bot: Bot):
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
-        end_timeFourth = time(15, 0)
+        end_timeFourth = time(23, 50)
         start_timeFifth = time(16, 25)
         end_timeFifth = time(16, 40)
         start_timeSix = time(18, 15)
@@ -718,7 +723,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
-        end_timeFourth = time(15, 0)
+        end_timeFourth = time(23, 50)
         start_timeFifth = time(16, 25)
         end_timeFifth = time(16, 40)
         start_timeSix = time(18, 15)
@@ -2046,8 +2051,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                         if student.group in groups:
                             await approve_message_for_students(bot, student, "Пара состоится")
         await callback.answer('✅')
-        await callback.message.answer('Вы подтвердили начало пары', reply_markup = kb.code_generation)
-
+        await callback.message.answer('Вы подтвердили начало пары', reply_markup=kb.code_generation)
 
 
 @router.callback_query(F.data == 'cancel_pair')
@@ -2066,7 +2070,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
-        end_timeFourth = time(15, 0)
+        end_timeFourth = time(23, 50)
         start_timeFifth = time(16, 25)
         end_timeFifth = time(16, 40)
         start_timeSix = time(18, 15)
@@ -3396,14 +3400,20 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         await callback.answer('❌')
         await callback.message.answer('Вы отменили пару')
 
+
 @router.callback_query(F.data == 'generate_code')
 async def generate_code(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(RegisterCode.code)
     await callback.answer('In progress')
     await callback.message.answer('Введите код для подтверждения присутсвия студентами')
 
+
+import asyncio
+
+
 async def approve_message_for_students_roll(bot: Bot, student: Student, message: str):
-    await bot.send_message(chat_id=student.chat_id, text=message, reply_markup=kb.accept_roll)
+    sent_message = await bot.send_message(chat_id=student.chat_id, text=message, reply_markup=kb.accept_roll)
+
 
 @router.message(RegisterCode.code)
 async def generate_code_main_state(message: types.Message, state: FSMContext, bot: Bot):
@@ -3426,27 +3436,103 @@ async def generate_code_main_state(message: types.Message, state: FSMContext, bo
         f'Код успешно создан у студентов есть 10 минут, чтобы пройти перекличку. То есть до {time_string}.')
     await state.clear()
 
+
 @router.callback_query(F.data == 'accept__roll')
 async def generate_code(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(RegisterAsPresent.code)
     await callback.answer('In progress')
     await callback.message.answer('Введите код, чтобы подтвердить присутствие')
 
-@router.message(RegisterCode.code)
+
+@router.message(RegisterAsPresent.code)
 async def generate_code_main_state(message: types.Message, state: FSMContext):
     await state.update_data(code=message.text)
+    try:
+        async with async_session() as session:
+            student = await rq.get_student(message.from_user.id)
+            open_list_of_presents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
+            for present in open_list_of_presents:
+                if student.group in present.group:
+                    if message.text == present.code:
+                        await message.answer('Код верен')
+                        await message.answer('Теперь необходимо подтвердить геопозицию', reply_markup=kb.share_location)
+                        break
+                    else:
+                        await state.set_state(RegisterAsPresent.code)
+                        await message.answer(
+                            f'Неверный код доступа. Попробуйте еще раз.', reply_markup=kb.accept_roll)
+                        break
+            else:
+                await message.answer('Перекличка уже закночилась')
+            await state.clear()
+    except Exception as e:
+        await message.answer(f'Произошла ошибка: {str(e)}')
+
+
+def is_inside_polygon(latitude, longitude, polygon_coords):
+    n = len(polygon_coords)
+    inside = False
+    for i in range(n):
+        j = (i + 1) % n
+        xi, yi = polygon_coords[i]
+        xj, yj = polygon_coords[j]
+        intersect = ((yi > longitude) != (yj > longitude)) and (
+                latitude < (xj - xi) * (longitude - yi) / (yj - yi) + xi)
+        if intersect:
+            inside = not inside
+    return inside
+
+
+@router.message(F.location)
+async def process_share_location(message: types.location):
+    location = message.location
+    print(f'Received location: Latitude={location.latitude}, Longitude={location.longitude}')
     async with async_session() as session:
+        latitude = location.latitude
+        longitude = location.longitude
+        Gasta = [(59.858010040200654, 30.326201291447138), (59.858064005983664, 30.329355569248644),
+                 (59.85650975627057, 30.329205365543828), (59.85671483505771, 30.326673360233766)]
+        Lensa = [(59.8562561044372, 30.329784722691038), (59.85623451695752, 30.33173737085389),
+                 (59.85519830140582, 30.329956384067984), (59.855133536858695, 30.33184465921447)]
+        BM = [(59.930930489256866, 30.29282265918946), (59.93179203162438, 30.296513378793964),
+              (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
         student = await rq.get_student(message.from_user.id)
-        listOfpresents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
-        for listOfpresent in listOfpresents:
-            if student.group in listOfpresent.group:
-                if message.text == listOfpresent.code:
-                    students = listOfpresent.students
+        open_list_of_presents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
+        if is_inside_polygon(latitude, longitude, Gasta):
+            for present in open_list_of_presents:
+                if student.group in present.group:
+                    students = present.students
                     if students:
                         students += f", {student.initials}"
                     else:
                         students = student.initials
-                    listOfpresent.students = students
+                    present.students = students
                     await session.commit()
-    await state.clear()
-
+                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    break
+        elif is_inside_polygon(latitude, longitude, Lensa):
+            for present in open_list_of_presents:
+                if student.group in present.group:
+                    students = present.students
+                    if students:
+                        students += f", {student.initials}"
+                    else:
+                        students = student.initials
+                    present.students = students
+                    await session.commit()
+                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    break
+        elif is_inside_polygon(latitude, longitude, BM):
+            for present in open_list_of_presents:
+                if student.group in present.group:
+                    students = present.students
+                    if students:
+                        students += f", {student.initials}"
+                    else:
+                        students = student.initials
+                    present.students = students
+                    await session.commit()
+                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    break
+        else:
+            await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
