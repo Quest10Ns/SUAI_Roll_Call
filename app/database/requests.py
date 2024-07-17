@@ -216,7 +216,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
-        end_timeFourth = time(15, 0)
+        end_timeFourth = time(23, 50)
         start_timeFifth = time(16, 25)
         end_timeFifth = time(16, 40)
         start_timeSix = time(18, 15)
