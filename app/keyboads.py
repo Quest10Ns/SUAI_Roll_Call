@@ -56,3 +56,8 @@ share_location = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='📌 Под
 add_or_delete = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='➕', callback_data='add'),
      InlineKeyboardButton(text='➖', callback_data='dalete')]])
+
+short_and_full_lessons = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Полный список', callback_data='full_lessons'),
+     InlineKeyboardButton(text='Сокращенный список', callback_data='short_lessons')]])
+

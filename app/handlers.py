@@ -3570,13 +3570,35 @@ async def process_share_location(message: types.location):
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
 
 @router.message(F.text == '✅Мое посещение')
-async def main_schedule(message: types.Message):
-    student = await rq.get_student_initials(message.from_user.id)
-    group = await rq.get_student_group(message.from_user.id)
+async def check_lessons(message: types.Message):
+    await message.answer('Выберите нужный Вам формат', reply_markup=kb.short_and_full_lessons)
+
+
+@router.callback_query(F.data == 'full_lessons')
+async def check_full_lessons(callback: types.CallbackQuery):
+    student = await rq.get_student_initials(callback.from_user.id)
+    group = await rq.get_student_group(callback.from_user.id)
     lessons = await rq.check_lessons(group, student)
     result = ''
     for lesson in lessons:
         result += lesson[0] + ' ' + lesson[1] + '\n'
-    await message.answer(result)
-    await message.answer('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
+    await callback.answer('Ваши посещения')
+    await callback.message.answer(result)
+    await callback.message.answer('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
+                         reply_markup=kb.main_buttuns_for_student)
+
+@router.callback_query(F.data == 'short_lessons')
+async def check_short_lessons(callback: types.CallbackQuery):
+    student = await rq.get_student_initials(callback.from_user.id)
+    group = await rq.get_student_group(callback.from_user.id)
+    lessons = await rq.check_lessons(group, student)
+    result_tmp = {}
+    for lesson in lessons:
+        result_tmp = result_tmp.get(lesson[1], 0) + 1
+    result = 'Ваши посещения:\n'
+    for lesson, count in result_tmp.items():
+        result += f'{lesson}: {count}\n'
+    await callback.answer('Ваши посещения')
+    await callback.message.answer(result)
+    await callback.message.answer('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
                          reply_markup=kb.main_buttuns_for_student)
