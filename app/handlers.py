@@ -23,6 +23,7 @@ router = Router()
 
 attempts = {}
 
+
 def get_lesson_name(schedule, lesson_number):
     today = date.fromtimestamp(tim.time())
     current_week = (date(today.year, today.month, today.day).isocalendar()[1]) % 2
@@ -66,6 +67,7 @@ class RegisterCode(StatesGroup):
 class RegisterAsPresent(StatesGroup):
     code = State()
     location = State()
+
 
 class AddStudents(StatesGroup):
     students = State()
@@ -2066,7 +2068,9 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
                         if student.group in groups:
                             await approve_message_for_students(bot, student, "Пара состоится")
         await callback.answer('✅')
-        await callback.message.answer('Вы подтвердили начало пары.\nРассчитайте время так, чтобы перекличка закончилась до конца пары', reply_markup=kb.code_generation)
+        await callback.message.answer(
+            'Вы подтвердили начало пары.\nРассчитайте время так, чтобы перекличка закончилась до конца пары',
+            reply_markup=kb.code_generation)
 
 
 @router.callback_query(F.data == 'cancel_pair')
@@ -3422,9 +3426,11 @@ async def generate_code(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer('In progress')
     await callback.message.answer('Введите код для подтверждения присутсвия студентами')
 
+
 async def approve_message_for_students_roll(bot: Bot, student: Student, message: str):
     sent_message = await bot.send_message(chat_id=student.chat_id, text=message, reply_markup=kb.accept_roll)
     return sent_message
+
 
 async def message_about_end_of_roll_call(bot: Bot, message: types.Message):
     await message.edit_text("Перекличка окончена")
@@ -3436,9 +3442,9 @@ async def close_list(listOfpresent_id, bot: Bot):
         listOfpresent.status = 'preclose'
         teacher = await session.scalar(select(Teacher).filter(Teacher.id == listOfpresent.teacher_id))
         students = listOfpresent.students
-        await bot.send_message(chat_id=teacher.chat_id, text=f'Перекличка окончена. Список студентов:\n{students}', reply_markup=kb.add_or_delete)
+        await bot.send_message(chat_id=teacher.chat_id, text=f'Перекличка окончена. Список студентов:\n{students}',
+                               reply_markup=kb.add_or_delete)
         await session.commit()
-
 
 
 @router.message(RegisterCode.code)
@@ -3527,8 +3533,8 @@ async def process_share_location(message: types.location):
         #       (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
         student = await rq.get_student(message.from_user.id)
         open_list_of_presents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
-        Gasta = [(59.83838293879409,30.48435492476775), (59.84842554032725,30.499394938317884),
-                  (59.82435066905143,30.51281974665993), (59.836967483643015,30.54097221248025)]
+        Gasta = [(59.83838293879409, 30.48435492476775), (59.84842554032725, 30.499394938317884),
+                 (59.82435066905143, 30.51281974665993), (59.836967483643015, 30.54097221248025)]
         if is_inside_polygon(latitude, longitude, Gasta):
             for present in open_list_of_presents:
                 if student.group in present.group:
@@ -3568,13 +3574,16 @@ async def process_share_location(message: types.location):
         else:
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
 
+
 @router.callback_query(F.data == 'is_right')
 async def accept_list_of_present(callback: types.CallbackQuery):
     async with async_session() as session:
         teacher = await rq.get_teacher(callback.from_user.id)
-        listOfpresent = await session.scalar(select(ListOfPresent).filter(and_(ListOfPresent.teacher_id == teacher.id, ListOfPresent.status == 'preclose')))
+        listOfpresent = await session.scalar(select(ListOfPresent).filter(
+            and_(ListOfPresent.teacher_id == teacher.id, ListOfPresent.status == 'preclose')))
         listOfpresent.status = 'close'
-        await callback.message.answer(f'Перекличка закрыта, финальная версия списка присутсвущих:\n{listOfpresent.students}')
+        await callback.message.answer(
+            f'Перекличка закрыта, финальная версия списка присутсвущих:\n{listOfpresent.students}')
         await session.commit()
 
 
@@ -3583,12 +3592,14 @@ async def accept_list_of_present(callback: types.CallbackQuery, state: FSMContex
     await callback.message.answer(f'Введите ФИО студентов которых хотите добавить')
     await state.set_state(AddStudents.students)
 
+
 @router.message(AddStudents.students)
 async def cmd_start(message: types.Message, state: FSMContext):
     await state.update_data(students=message.text)
     async with async_session() as session:
         teacher = await rq.get_teacher(message.from_user.id)
-        listOfpresent = await session.scalar(select(ListOfPresent).filter(and_(ListOfPresent.teacher_id == teacher.id, ListOfPresent.status == 'preclose')))
+        listOfpresent = await session.scalar(select(ListOfPresent).filter(
+            and_(ListOfPresent.teacher_id == teacher.id, ListOfPresent.status == 'preclose')))
         students = listOfpresent.students
         if students:
             students += f", {message.text}"
