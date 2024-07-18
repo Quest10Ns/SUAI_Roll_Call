@@ -1,7 +1,7 @@
 import os
 from app.database.models import async_session
 from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, Rang, ListOfPresent
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, and_
 from datetime import datetime, time, date
 import time as tim
 import aiofiles
@@ -1997,9 +1997,10 @@ async def get_data_pair(teacher_name):
     async with async_session() as session:
         return await session.scalars(select(ListOfPresent).filter(ListOfPresent.Teacher == teacher_name))
 
-async def get_number_pair_by_data(data_id):
+async def get_number_pair_by_data(data_id, teacher):
     async with async_session() as session:
-        return await session.scalars(select(ListOfPresent).filter(ListOfPresent.id == data_id))
+        return await session.scalars(select(ListOfPresent).filter(and_(ListOfPresent.id == data_id,
+                                                                       ListOfPresent.Teacher == teacher)))
 
 async def get_info_for_pair(data_id):
     async with async_session() as session:

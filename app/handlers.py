@@ -3633,12 +3633,13 @@ async def check_lesson_for_teacher(message: types.Message):
 
 @router.callback_query(F.data.startswith('pair_'))
 async def current_data_pair(callback: types.CallbackQuery):
-    await callback.message.edit_text('Выберите интересубщую вас пару',
-                                     reply_markup=await kb.get_number_pair_by_data(callback.data.split('_')[1]))
+    teacher = await rq.get_teachers_initials(callback.from_user.id)
+    await callback.message.edit_text('Выберите интересующую вас пару',
+                                     reply_markup=await kb.number_pair(callback.data.split('_')[1], teacher))
 
 @router.callback_query(F.data.startswith('numPair_'))
 async def current_info_for_pair(callback: types.CallbackQuery):
-    info = await rq.get_number_pair_by_data(callback.data.split('_')[1])
+    info = await rq.get_number_pair_by_data(int(callback.data.split('_')[1]))
     result = f'{info.group}:\n{info.students}'
     await callback.message.answer(result, reply_markup=kb.main_buttuns_for_teachers)
 
