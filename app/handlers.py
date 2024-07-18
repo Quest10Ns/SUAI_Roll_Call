@@ -3618,7 +3618,7 @@ async def check_full_lessons(callback: types.CallbackQuery):
     student = await rq.get_student_initials(callback.from_user.id)
     group = await rq.get_student_group(callback.from_user.id)
     lessons = await rq.check_lessons(group, student)
-    result = ''
+    result = 'Ваши посещения:\n'
     for lesson in lessons:
         result += lesson[0] + ' ' + lesson[1] + '\n'
     await callback.answer('Ваши посещения')
@@ -3633,7 +3633,7 @@ async def check_short_lessons(callback: types.CallbackQuery):
     lessons = await rq.check_lessons(group, student)
     result_tmp = {}
     for lesson in lessons:
-        result_tmp = result_tmp.get(lesson[1], 0) + 1
+        result_tmp[lesson[1]] = result_tmp.get(lesson[1], 0) + 1
     result = 'Ваши посещения:\n'
     for lesson, count in result_tmp.items():
         result += f'{lesson}: {count}\n'
