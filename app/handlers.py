@@ -3467,7 +3467,7 @@ async def generate_code_main_state(message: types.Message, state: FSMContext, bo
     await message.reply(
         f'Код успешно создан у студентов есть 10 минут, чтобы пройти перекличку. То есть до {time_string}.')
     await state.clear()
-    await asyncio.create_task(asyncio.sleep(600))
+    await asyncio.create_task(asyncio.sleep(15))
     await asyncio.create_task(close_list(listOfpresent.id, bot))
     await asyncio.create_task(message_about_end_of_roll_call(bot, sent_message))
 
@@ -3623,7 +3623,7 @@ async def check_full_lessons(callback: types.CallbackQuery):
         result += lesson[0] + ' ' + lesson[1] + '\n'
     await callback.answer('Ваши посещения')
     await callback.message.answer(result)
-    await callback.message.answer('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
+    await callback.message.reply('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
                          reply_markup=kb.main_buttuns_for_student)
 
 @router.callback_query(F.data == 'short_lessons')
@@ -3639,5 +3639,5 @@ async def check_short_lessons(callback: types.CallbackQuery):
         result += f'{lesson}: {count}\n'
     await callback.answer('Ваши посещения')
     await callback.message.answer(result)
-    await callback.message.answer('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
+    await callback.message.reply('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
                          reply_markup=kb.main_buttuns_for_student)
