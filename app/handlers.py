@@ -3568,3 +3568,16 @@ async def process_share_location(message: types.location):
         #             break
         else:
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
+
+
+@router.message(F.text == '✅Мое посещение')
+async def main_schedule(message: types.Message):
+    student = await rq.get_student_initials(message.from_user.id)
+    group = await rq.get_student_group(message.from_user.id)
+    lessons = await rq.check_lessons(group, student)
+    result = ''
+    for lesson in lessons:
+        result += lesson[0] + ' ' + lesson[1] + '\n'
+    await message.answer(result)
+    await message.answer('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
+                         reply_markup=kb.main_buttuns_for_student)
