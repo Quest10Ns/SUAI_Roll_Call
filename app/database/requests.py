@@ -2007,7 +2007,7 @@ async def get_data_pair(teacher_name):
 
 async def get_number_pair_by_data(data_id, teacher):
     async with async_session() as session:
-        return await session.scalars(select(ListOfPresent).filter(and_(ListOfPresent.id == data_id,
+        return await session.scalars(select(ListOfPresent).filter(and_(ListOfPresent.date == data_id,
                                                                        ListOfPresent.Teacher == teacher)))
 
 async def get_info_for_pair(data_id):
