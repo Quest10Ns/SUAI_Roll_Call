@@ -24,8 +24,8 @@ router = Router()
 attempts = {}
 
 def get_lesson_name(schedule, lesson_number):
-    today = date.fromtimestamp(time.time())
-    current_week = (date(today.year, today.month, today.day).isocalendar()[1]) % 2 - 1
+    today = date.fromtimestamp(tim.time())
+    current_week = (date(today.year, today.month, today.day).isocalendar()[1]) % 2
     if current_week == 1:
         pattern = rf"{lesson_number[0]} {lesson_number[1]} [ПРЛ]+.*? – (.*) – |{lesson_number[0]} .* ▲ [ПРЛ]+ – (.*) – .* ▼|{lesson_number[0]} .* ▲ [ПРЛ]+ – (.*) –"
         match = re.findall(pattern, schedule)
@@ -395,7 +395,7 @@ async def check_pair_and_send_message(bot: Bot):
         today = datetime.now().weekday()
         now = datetime.now().time()
         start_timeFirst = time(9, 15)
-        end_timeFirst = time(10, 0)
+        end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
@@ -729,7 +729,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
-        end_timeFirst = time(10, 0)
+        end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
@@ -2076,7 +2076,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
-        end_timeFirst = time(10, 0)
+        end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
@@ -3425,9 +3425,7 @@ import asyncio
 
 async def approve_message_for_students_roll(bot: Bot, student: Student, message: str):
     sent_message = await bot.send_message(chat_id=student.chat_id, text=message, reply_markup=kb.accept_roll)
-    await asyncio.create_task(asyncio.sleep(600))
-    await asyncio.create_task(message_about_end_of_roll_call(bot, sent_message))
-
+    return sent_message
 
 async def message_about_end_of_roll_call(bot: Bot, message: types.Message):
     await message.edit_text("Перекличка окончена")
@@ -3437,9 +3435,10 @@ async def close_list(listOfpresent_id, bot: Bot):
     async with async_session() as session:
         listOfpresent = await session.scalar(select(ListOfPresent).filter(ListOfPresent.id == listOfpresent_id))
         listOfpresent.status = 'preclose'
-        await session.commit()
         teacher = await session.scalar(select(Teacher).filter(Teacher.id == listOfpresent.teacher_id))
-        await bot.send_message(chat_id=teacher.chat_id, text=f'Перекличка окончена. Список студентов:\n{listOfpresent.students}', reply_markup=kb.add_or_delete)
+        students = listOfpresent.students
+        await bot.send_message(chat_id=teacher.chat_id, text=f'Перекличка окончена. Список студентов:\n{students}', reply_markup=kb.add_or_delete)
+        await session.commit()
 
 
 
@@ -3459,12 +3458,13 @@ async def generate_code_main_state(message: types.Message, state: FSMContext, bo
         pattern = listOfpresent.group
         for student in students.scalars():
             if student.group in pattern:
-                await approve_message_for_students_roll(bot, student, "Преподаватель начал перекличку")
+                sent_message = await approve_message_for_students_roll(bot, student, "Преподаватель начал перекличку")
     await message.reply(
         f'Код успешно создан у студентов есть 10 минут, чтобы пройти перекличку. То есть до {time_string}.')
     await state.clear()
     await asyncio.create_task(asyncio.sleep(600))
-    await asyncio.create_task(close_list(listOfpresent.id))
+    await asyncio.create_task(close_list(listOfpresent.id, bot))
+    await asyncio.create_task(message_about_end_of_roll_call(bot, sent_message))
 
 
 @router.callback_query(F.data == 'accept__roll')
@@ -3528,8 +3528,8 @@ async def process_share_location(message: types.location):
         #       (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
         student = await rq.get_student(message.from_user.id)
         open_list_of_presents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
-        Gasta = [(59.83531572377989,30.508559178918148), (59.838166947015964,30.513709020226745),
-                  (59.831211260235435,30.520832967370303), (59.83471088735714,30.522549581139845)]
+        Gasta = [(59.83838293879409,30.48435492476775), (59.84842554032725,30.499394938317884),
+                  (59.82435066905143,30.51281974665993), (59.836967483643015,30.54097221248025)]
         if is_inside_polygon(latitude, longitude, Gasta):
             for present in open_list_of_presents:
                 if student.group in present.group:
