@@ -1967,3 +1967,12 @@ async def forced_closure():
         async for lesson in lessons:
             lesson.status = 'close'
         await session.commit()
+
+async def check_lessons(student_group, student_name):
+    async with  async_session() as session:
+        lessons = await session.scalars( select(ListOfPresent).filter(ListOfPresent.status == 'close'))
+        student_lessons = []
+        for lesson in lessons:
+            if (student_name in lesson.students) and (student_group in lesson.group):
+                student_lessons.append([lesson.date, lesson.Pair])
+        return student_lessons
