@@ -2,7 +2,7 @@ import os
 from app.database.models import async_session
 from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, \
     ListOfPresent
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, and_
 from datetime import datetime, time, date
 import time as tim
 import aiofiles
@@ -226,6 +226,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         if today == 0:
             schedule_string = mainSchedule.Monday
             if start_timeFirst <= now <= end_timeFirst:
+                nubmer_pair = '1 пара'
                 if current_week == 1:
                     pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -267,6 +268,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
+                nubmer_pair = '2 пара'
                 if current_week == 1:
                     pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -308,6 +310,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
+                nubmer_pair = '3 пара'
                 if current_week == 1:
                     pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -349,6 +352,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
+                nubmer_pair = '4 пара'
                 if current_week == 1:
                     pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -390,6 +394,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
+                nubmer_pair = '5 пара'
                 if current_week == 1:
                     pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -431,6 +436,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
+                nubmer_pair = '6 пара'
                 if current_week == 1:
                     pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -472,6 +478,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
+                nubmer_pair = '7 пара'
                 if current_week == 1:
                     pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -515,6 +522,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         elif today == 1:
             schedule_string = mainSchedule.Tuesday
             if start_timeFirst <= now <= end_timeFirst:
+                nubmer_pair = '1 пара'
                 if current_week == 1:
                     pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -556,6 +564,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
+                nubmer_pair = '2 пара'
                 if current_week == 1:
                     pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -597,6 +606,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
+                nubmer_pair = '3 пара'
                 if current_week == 1:
                     pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -638,6 +648,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
+                nubmer_pair = '4 пара'
                 if current_week == 1:
                     pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -679,6 +690,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
+                nubmer_pair = '5 пара'
                 if current_week == 1:
                     pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -720,6 +732,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
+                nubmer_pair = '6 пара'
                 if current_week == 1:
                     pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -761,6 +774,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
+                nubmer_pair = '7 пара'
                 if current_week == 1:
                     pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -804,6 +818,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         elif today == 2:
             schedule_string = mainSchedule.Wednesday
             if start_timeFirst <= now <= end_timeFirst:
+                nubmer_pair = '1 пара'
                 if current_week == 1:
                     pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -845,6 +860,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
+                nubmer_pair = '2 пара'
                 if current_week == 1:
                     pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -886,6 +902,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
+                nubmer_pair = '3 пара'
                 if current_week == 1:
                     pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -927,6 +944,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
+                nubmer_pair = '4 пара'
                 if current_week == 1:
                     pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -968,6 +986,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
+                nubmer_pair = '5 пара'
                 if current_week == 1:
                     pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1009,6 +1028,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
+                nubmer_pair = '6 пара'
                 if current_week == 1:
                     pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1050,6 +1070,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
+                nubmer_pair = '7 пара'
                 if current_week == 1:
                     pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1093,6 +1114,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         elif today == 3:
             schedule_string = mainSchedule.Thursday
             if start_timeFirst <= now <= end_timeFirst:
+                nubmer_pair = '1 пара'
                 if current_week == 1:
                     pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1134,6 +1156,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
+                nubmer_pair = '2 пара'
                 if current_week == 1:
                     pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1175,6 +1198,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
+                nubmer_pair = '3 пара'
                 if current_week == 1:
                     pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1216,6 +1240,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
+                nubmer_pair = '4 пара'
                 if current_week == 1:
                     pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1257,6 +1282,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
+                nubmer_pair = '5 пара'
                 if current_week == 1:
                     pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1298,6 +1324,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
+                nubmer_pair = '6 пара'
                 if current_week == 1:
                     pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1339,6 +1366,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
+                nubmer_pair = '7 пара'
                 if current_week == 1:
                     pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1382,6 +1410,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         elif today == 4:
             schedule_string = mainSchedule.Friday
             if start_timeFirst <= now <= end_timeFirst:
+                nubmer_pair = '1 пара'
                 if current_week == 1:
                     pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1423,6 +1452,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
+                nubmer_pair = '2 пара'
                 if current_week == 1:
                     pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1464,6 +1494,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
+                nubmer_pair = '3 пара'
                 if current_week == 1:
                     pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1505,6 +1536,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
+                nubmer_pair = '4 пара'
                 if current_week == 1:
                     pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1546,6 +1578,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
+                nubmer_pair = '5 пара'
                 if current_week == 1:
                     pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1587,6 +1620,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
+                nubmer_pair = '6 пара'
                 if current_week == 1:
                     pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1628,6 +1662,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
+                nubmer_pair = '7 пара'
                 if current_week == 1:
                     pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1671,6 +1706,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         elif today == 5:
             schedule_string = mainSchedule.Saturday
             if start_timeFirst <= now <= end_timeFirst:
+                nubmer_pair = '1 пара'
                 if current_week == 1:
                     pattern_lesson = r"1 пара \(9:30–11:00\) [ПРЛ]+.*? – (.*) – |1 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|1 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_gruoup = r"1 пара \(9:30–11:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара \(9:30–11:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|1 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|1 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1712,6 +1748,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
+                nubmer_pair = '2 пара'
                 if current_week == 1:
                     pattern_lesson = r"2 пара \(11:10–12:40\) [ПРЛ]+.*? – (.*) – |2 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|2 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"2 пара \(11:10–12:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара \(11:10–12:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|2 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|2 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1753,6 +1790,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
+                nubmer_pair = '3 пара'
                 if current_week == 1:
                     pattern_lesson = r"3 пара \(13:00–14:30\) [ПРЛ]+.*? – (.*) – |3 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|3 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"3 пара \(13:00–14:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара \(13:00–14:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|3 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|3 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1794,6 +1832,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
+                nubmer_pair = '4 пара'
                 if current_week == 1:
                     pattern_lesson = r"4 пара \(15:00–16:30\) [ПРЛ]+.*? – (.*) – |4 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|4 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"4 пара \(15:00–16:30\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара \(15:00–16:30\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|4 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|4 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1835,6 +1874,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
+                nubmer_pair = '5 пара'
                 if current_week == 1:
                     pattern_lesson = r"5 пара \(16:40–18:10\) [ПРЛ]+.*? – (.*) – |5 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|5 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"5 пара \(16:40–18:10\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара \(16:40–18:10\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|5 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|5 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1876,6 +1916,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
+                nubmer_pair = '6 пара'
                 if current_week == 1:
                     pattern_lesson = r"6 пара \(18:30–20:00\) [ПРЛ]+.*? – (.*) – |6 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|6 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"6 пара \(18:30–20:00\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара \(18:30–20:00\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|6 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|6 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1917,6 +1958,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                 matches = result1
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
+                nubmer_pair = '7 пара'
                 if current_week == 1:
                     pattern_lesson = r"7 пара \(20:10–21:40\) [ПРЛ]+.*? – (.*) – |7 пара .* ▲ [ПРЛ]+ – (.*) – .* ▼|7 пара .* ▲ [ПРЛ]+ – (.*) –"
                     pattern_group = r"7 пара \(20:10–21:40\) [ПРЛ]* .*?Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара \(20:10–21:40\) [ПРЛ]* .*?Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲ .* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*) ▼|7 пара .* ▲.* Группа: ([A-ZА-Я]?\d+[A-ZА-Я]*)|7 пара .* ▲.* Группы: (([A-ZА-Я]?\d+[A-ZА-Я]* ; )*[A-ZА-Я]?\d+[A-ZА-Я]*)"
@@ -1957,7 +1999,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                                 groups.append(result2[i][j])
                 matches = result1
                 groups = ' '.join(groups)
-        list_of_present = ListOfPresent(Teacher=teacher.initials, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id)
+        list_of_present = ListOfPresent(Teacher=teacher.initials, Number_pair=nubmer_pair, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id)
         session.add(list_of_present)
         await session.commit()
 
@@ -1976,3 +2018,15 @@ async def check_lessons(student_group, student_name):
             if (student_name in lesson.students) and (student_group in lesson.group):
                 student_lessons.append([lesson.date, lesson.Pair])
         return student_lessons
+
+async def get_data_pair(teacher_name):
+    async with async_session() as session:
+        return await session.scalars(select(ListOfPresent).filter(ListOfPresent.Teacher == teacher_name))
+
+async def get_number_pair_by_data(data_id):
+    async with async_session() as session:
+        return await session.scalars(select(ListOfPresent).filter(ListOfPresent.id == data_id))
+
+async def get_info_for_pair(data_id):
+    async with async_session() as session:
+        return await session.scalar(select(ListOfPresent).filter(ListOfPresent.id == data_id))

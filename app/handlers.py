@@ -3614,6 +3614,21 @@ async def cmd_start(message: types.Message, state: FSMContext):
 async def check_lessons(message: types.Message):
     await message.answer('Выберите нужный Вам формат', reply_markup=kb.short_and_full_lessons)
 
+@router.message(F.text == '✅Посещение')
+async def check_lesson_for_teacher(message: types.Message):
+    teacher = await rq.get_teachers_initials(message.from_user.id)
+    await message.answer('Выберите интересующую вас дату:', reply_markup=await kb.data_pair(teacher))
+
+@router.callback_query(F.data.startswith('pair_'))
+async def current_data_pair(callback: types.CallbackQuery):
+    await callback.message.edit_text('Выберите интересубщую вас пару',
+                                     reply_markup=await kb.get_number_pair_by_data(callback.data.split('_')[1]))
+
+@router.callback_query(F.data.startswith('numPair_'))
+async def current_info_for_pair(callback: types.CallbackQuery):
+    info = await rq.get_number_pair_by_data(callback.data.split('_')[1])
+    result = f'{info.group}:\n{info.students}'
+    await callback.message.answer(result, reply_markup=kb.main_buttuns_for_teachers)
 
 @router.callback_query(F.data == 'full_lessons')
 async def check_full_lessons(callback: types.CallbackQuery):
@@ -3643,3 +3658,4 @@ async def check_short_lessons(callback: types.CallbackQuery):
     await callback.message.answer(result)
     await callback.message.reply('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
                          reply_markup=kb.main_buttuns_for_student)
+
