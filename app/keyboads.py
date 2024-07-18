@@ -1,6 +1,11 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, InlineKeyboardMarkup, \
     InlineKeyboardButton
 
+from app.database.requests import get_data_pair, get_teachers_initials, get_number_pair_by_data
+
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+
+
 start_buttons = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Преподаватель'), KeyboardButton(text='Студент')]],
                                     resize_keyboard=True)
 
@@ -60,3 +65,19 @@ add_or_delete = InlineKeyboardMarkup(inline_keyboard=[
 short_and_full_lessons = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Полный список', callback_data='full_lessons'),
      InlineKeyboardButton(text='Сокращенный список', callback_data='short_lessons')]])
+
+async def data_pair(teacher):
+    all_pair = await get_data_pair(get_teachers_initials(teacher))
+    keyboard = InlineKeyboardBuilder()
+    for pair in all_pair:
+        keyboard.add(InlineKeyboardButton(text=pair.date, callback_data=f'pair_{pair.id}'))
+    keyboard.add(InlineKeyboardButton(text='Вернуться назад', callback_data='to_main'))
+    return keyboard.adjust(3).as_markup()
+
+async def number_pair(data_id):
+    all_number_pair = await get_number_pair_by_data(data_id)
+    keyboard = InlineKeyboardBuilder()
+    for num_pair in all_number_pair:
+        keyboard.add(InlineKeyboardButton(text=num_pair.Number_pair, callback_data=f'numPair_{num_pair.id}'))
+    keyboard.add(InlineKeyboardButton(text='Вернуться назад', callback_data='to_main'))
+    return keyboard.adjust(2).as_markup()
