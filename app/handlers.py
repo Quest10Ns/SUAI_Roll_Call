@@ -3606,6 +3606,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
         else:
             students = message.text
         listOfpresent.students = students
+        await message.answer(
+            f'Перекличка закрыта, финальная версия списка присутсвущих:\n{listOfpresent.students}', reply_markup=kb.add_or_delete)
         await session.commit()
 
 @router.message(F.text == '✅Мое посещение')
@@ -3620,7 +3622,7 @@ async def check_full_lessons(callback: types.CallbackQuery):
     lessons = await rq.check_lessons(group, student)
     result = 'Ваши посещения:\n'
     for lesson in lessons:
-        result += lesson[0] + ' ' + lesson[1] + '\n'
+        result += f'{lesson[0]} {lesson[1]}\n'
     await callback.answer('Ваши посещения')
     await callback.message.answer(result)
     await callback.message.reply('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
