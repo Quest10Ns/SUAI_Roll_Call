@@ -3698,10 +3698,6 @@ async def check_lessons(message: types.Message):
     pos = await rq.get_rating_for_current_student_personal(message.from_user.id)
     await message.answer(f'Ваше место в рейтинге:\n{pos}  {rank.student_name}  {rank.mmr}')
 
-
-
-
-
-
-
-
+@router.message(F.data == 'to_main')
+async def to_main(callback: types.CallbackQuery):
+    await callback.message.edit_text('Вы вернулисб на главную', reply_markup=kb.main_buttuns_for_teachers)
