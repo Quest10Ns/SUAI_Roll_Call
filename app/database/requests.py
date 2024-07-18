@@ -264,6 +264,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '1 пара'
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
                 if current_week == 1:
@@ -305,6 +306,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '2 пара'
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
                 if current_week == 1:
@@ -346,6 +348,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '3 пара'
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
                 if current_week == 1:
@@ -387,6 +390,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '4 пара'
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
                 if current_week == 1:
@@ -428,6 +432,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '5 пара'
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
                 if current_week == 1:
@@ -469,6 +474,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '6 пара'
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
                 if current_week == 1:
@@ -510,6 +516,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '7 пара'
                 groups = ' '.join(groups)
         elif today == 1:
             schedule_string = mainSchedule.Tuesday
@@ -553,6 +560,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '1 пара'
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
                 if current_week == 1:
@@ -594,6 +602,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '2 пара'
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
                 if current_week == 1:
@@ -635,6 +644,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '3 пара'
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
                 if current_week == 1:
@@ -676,6 +686,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '4 пара'
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
                 if current_week == 1:
@@ -717,6 +728,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '5 пара'
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
                 if current_week == 1:
@@ -758,6 +770,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '6 пара'
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
                 if current_week == 1:
@@ -799,6 +812,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '7 пара'
                 groups = ' '.join(groups)
         elif today == 2:
             schedule_string = mainSchedule.Wednesday
@@ -842,6 +856,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '1 пара'
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
                 if current_week == 1:
@@ -883,6 +898,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '2 пара'
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
                 if current_week == 1:
@@ -924,6 +940,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '3 пара'
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
                 if current_week == 1:
@@ -965,6 +982,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '4 пара'
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
                 if current_week == 1:
@@ -1006,6 +1024,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '5 пара'
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
                 if current_week == 1:
@@ -1047,6 +1066,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '6 пара'
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
                 if current_week == 1:
@@ -1088,6 +1108,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '7 пара'
                 groups = ' '.join(groups)
         elif today == 3:
             schedule_string = mainSchedule.Thursday
@@ -1131,6 +1152,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '1 пара'
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
                 if current_week == 1:
@@ -1172,6 +1194,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '2 пара'
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
                 if current_week == 1:
@@ -1213,6 +1236,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '3 пара'
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
                 if current_week == 1:
@@ -1254,6 +1278,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '4 пара'
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
                 if current_week == 1:
@@ -1295,6 +1320,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '5 пара'
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
                 if current_week == 1:
@@ -1336,6 +1362,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '6 пара'
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
                 if current_week == 1:
@@ -1377,6 +1404,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '7 пара'
                 groups = ' '.join(groups)
         elif today == 4:
             schedule_string = mainSchedule.Friday
@@ -1420,6 +1448,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '1 пара'
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
                 if current_week == 1:
@@ -1461,6 +1490,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '2 пара'
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
                 if current_week == 1:
@@ -1502,6 +1532,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '3 пара'
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
                 if current_week == 1:
@@ -1543,6 +1574,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '4 пара'
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
                 if current_week == 1:
@@ -1584,6 +1616,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '5 пара'
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
                 if current_week == 1:
@@ -1625,6 +1658,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '6 пара'
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
                 if current_week == 1:
@@ -1666,6 +1700,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '7 пара'
                 groups = ' '.join(groups)
         elif today == 5:
             schedule_string = mainSchedule.Saturday
@@ -1709,6 +1744,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '1 пара'
                 groups = ' '.join(groups)
             elif start_timeSecond <= now <= end_timeSecond:
                 if current_week == 1:
@@ -1750,6 +1786,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '2 пара'
                 groups = ' '.join(groups)
             elif start_timeThird <= now <= end_timeThird:
                 if current_week == 1:
@@ -1791,6 +1828,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '3 пара'
                 groups = ' '.join(groups)
             elif start_timeFourth <= now <= end_timeFourth:
                 if current_week == 1:
@@ -1832,6 +1870,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '4 пара'
                 groups = ' '.join(groups)
             elif start_timeFifth <= now <= end_timeFifth:
                 if current_week == 1:
@@ -1873,6 +1912,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '5 пара'
                 groups = ' '.join(groups)
             elif start_timeSix <= now <= end_timeSix:
                 if current_week == 1:
@@ -1914,6 +1954,7 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '6 пара'
                 groups = ' '.join(groups)
             elif start_timeSeven <= now <= end_timeSeven:
                 if current_week == 1:
@@ -1955,8 +1996,9 @@ async def set_data_for_listOfPresent(tg_id, code):
                             if result2[i][j] not in groups and result2[i][j] != '':
                                 groups.append(result2[i][j])
                 matches = result1
+                num_pair = '7 пара'
                 groups = ' '.join(groups)
-        list_of_present = ListOfPresent(Teacher=teacher.initials, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id)
+        list_of_present = ListOfPresent(Teacher=teacher.initials, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id, Number_pair=num_pair)
         session.add(list_of_present)
         await session.commit()
 
