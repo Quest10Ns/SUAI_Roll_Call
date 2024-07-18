@@ -3413,6 +3413,22 @@ import asyncio
 
 async def approve_message_for_students_roll(bot: Bot, student: Student, message: str):
     sent_message = await bot.send_message(chat_id=student.chat_id, text=message, reply_markup=kb.accept_roll)
+    await asyncio.create_task(asyncio.sleep(600))
+    await asyncio.create_task(message_about_end_of_roll_call(bot, sent_message))
+
+
+async def message_about_end_of_roll_call(bot: Bot, message: types.Message):
+    await message.edit_text("Перекличка окончена")
+
+
+async def close_list(listOfpresent_id, bot: Bot):
+    async with async_session() as session:
+        listOfpresent = await session.scalar(select(ListOfPresent).filter(ListOfPresent.id == listOfpresent_id))
+        listOfpresent.status = 'preclose'
+        await session.commit()
+        teacher = await session.scalar(select(Teacher).filter(Teacher.id == listOfpresent.teacher_id))
+        await bot.send_message(chat_id=teacher.chat_id, text=f'Перекличка окончена. Список студентов:\n{listOfpresent.students}', reply_markup=kb.add_or_delete)
+
 
 
 @router.message(RegisterCode.code)
@@ -3435,6 +3451,8 @@ async def generate_code_main_state(message: types.Message, state: FSMContext, bo
     await message.reply(
         f'Код успешно создан у студентов есть 10 минут, чтобы пройти перекличку. То есть до {time_string}.')
     await state.clear()
+    await asyncio.create_task(asyncio.sleep(600))
+    await asyncio.create_task(close_list(listOfpresent.id))
 
 
 @router.callback_query(F.data == 'accept__roll')
@@ -3490,14 +3508,16 @@ async def process_share_location(message: types.location):
     async with async_session() as session:
         latitude = location.latitude
         longitude = location.longitude
-        Gasta = [(59.858010040200654, 30.326201291447138), (59.858064005983664, 30.329355569248644),
-                 (59.85650975627057, 30.329205365543828), (59.85671483505771, 30.326673360233766)]
-        Lensa = [(59.8562561044372, 30.329784722691038), (59.85623451695752, 30.33173737085389),
-                 (59.85519830140582, 30.329956384067984), (59.855133536858695, 30.33184465921447)]
-        BM = [(59.930930489256866, 30.29282265918946), (59.93179203162438, 30.296513378793964),
-              (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
+        # Gasta = [(59.858010040200654, 30.326201291447138), (59.858064005983664, 30.329355569248644),
+        #          (59.85650975627057, 30.329205365543828), (59.85671483505771, 30.326673360233766)]
+        # Lensa = [(59.8562561044372, 30.329784722691038), (59.85623451695752, 30.33173737085389),
+        #          (59.85519830140582, 30.329956384067984), (59.855133536858695, 30.33184465921447)]
+        # BM = [(59.930930489256866, 30.29282265918946), (59.93179203162438, 30.296513378793964),
+        #       (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
         student = await rq.get_student(message.from_user.id)
         open_list_of_presents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
+        Gasta = [(59.83531572377989,30.508559178918148), (59.838166947015964,30.513709020226745),
+                  (59.831211260235435,30.520832967370303), (59.83471088735714,30.522549581139845)]
         if is_inside_polygon(latitude, longitude, Gasta):
             for present in open_list_of_presents:
                 if student.group in present.group:
@@ -3510,29 +3530,29 @@ async def process_share_location(message: types.location):
                     await session.commit()
                     await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
                     break
-        elif is_inside_polygon(latitude, longitude, Lensa):
-            for present in open_list_of_presents:
-                if student.group in present.group:
-                    students = present.students
-                    if students:
-                        students += f", {student.initials}"
-                    else:
-                        students = student.initials
-                    present.students = students
-                    await session.commit()
-                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
-                    break
-        elif is_inside_polygon(latitude, longitude, BM):
-            for present in open_list_of_presents:
-                if student.group in present.group:
-                    students = present.students
-                    if students:
-                        students += f", {student.initials}"
-                    else:
-                        students = student.initials
-                    present.students = students
-                    await session.commit()
-                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
-                    break
+        # elif is_inside_polygon(latitude, longitude, Lensa):
+        #     for present in open_list_of_presents:
+        #         if student.group in present.group:
+        #             students = present.students
+        #             if students:
+        #                 students += f", {student.initials}"
+        #             else:
+        #                 students = student.initials
+        #             present.students = students
+        #             await session.commit()
+        #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+        #             break
+        # elif is_inside_polygon(latitude, longitude, BM):
+        #     for present in open_list_of_presents:
+        #         if student.group in present.group:
+        #             students = present.students
+        #             if students:
+        #                 students += f", {student.initials}"
+        #             else:
+        #                 students = student.initials
+        #             present.students = students
+        #             await session.commit()
+        #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+        #             break
         else:
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
