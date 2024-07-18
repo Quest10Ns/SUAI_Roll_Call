@@ -262,8 +262,7 @@ async def register_group(message: types.Message, state: FSMContext):
                     reply_markup=kb.edit_button)
                 await rq.set_people_in_rang_system(message.from_user.id)
                 await message.reply(
-                    f'Так же вы были добавлены в ранговую систему, Вам были начислены стартовые 100 очков',
-                    reply_markup=kb.edit_button)
+                    f'Так же вы были добавлены в ранговую систему, Вам были начислены стартовые 100 очков')
                 await state.clear()
         else:
             cur_group = await rq.get_right_gpoup(message.text)
@@ -3547,11 +3546,11 @@ async def process_share_location(message: types.location):
                     else:
                         students = student.initials
                     present.students = students
-                    await session.commit()
                     await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    await rq.set_new_rating(message.from_user.id)
                     rank = await rq.get_rating_for_current_student(message.from_user.id)
-                    rank.mmr += 100
-                    await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
+                    await message.reply(f'Вам начисленно 100 рейтинговых очков, сейчас у Вас {rank.mmr}', reply_markup=kb.main_buttuns_for_student)
+                    await session.commit()
                     break
         # elif is_inside_polygon(latitude, longitude, Lensa):
         #     for present in open_list_of_presents:
@@ -3562,11 +3561,11 @@ async def process_share_location(message: types.location):
         #             else:
         #                 students = student.initials
         #             present.students = students
-        #             await session.commit()
         #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
         #             rank = await rq.get_rating_for_current_student(message.from_user.id)
         #             rank.mmr += 100
         #             await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
+        #             await session.commit()
         #             break
         # elif is_inside_polygon(latitude, longitude, BM):
         #     for present in open_list_of_presents:
@@ -3577,11 +3576,11 @@ async def process_share_location(message: types.location):
         #             else:
         #                 students = student.initials
         #             present.students = students
-        #             await session.commit()
         #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
         #             rank = await rq.get_rating_for_current_student(message.from_user.id)
         #             rank.mmr += 100
         #             await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
+        #             await session.commit()
         #             break
         else:
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
@@ -3634,7 +3633,7 @@ async def check_lesson_for_teacher(message: types.Message):
 @router.callback_query(F.data.startswith('pair_'))
 async def current_data_pair(callback: types.CallbackQuery):
     await callback.message.edit_text('Выберите интересубщую вас пару',
-                                     reply_markup=await kb.get_number_pair_by_data(callback.data.split('_')[1]))
+                                     reply_markup=await kb.number_pair(int(callback.data.split('_')[1])))
 
 @router.callback_query(F.data.startswith('numPair_'))
 async def current_info_for_pair(callback: types.CallbackQuery):
@@ -3679,6 +3678,7 @@ async def check_lessons(message: types.Message):
         for rank in ranks:
             rankOnStep = [rank.student_name, rank.mmr]
             ranked_list.append(rankOnStep)
+            print(f"Rank: {rank.student_name}, MMR: {rank.mmr}")
         ranked_string = '\n'.join([f'{i + 1}. {rank[0]} - {rank[1]}' for i, rank in enumerate(ranked_list)])
         await message.answer(f'Топ 15:\n{ranked_string}')
 

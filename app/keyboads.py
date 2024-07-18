@@ -67,10 +67,10 @@ short_and_full_lessons = InlineKeyboardMarkup(inline_keyboard=[
      InlineKeyboardButton(text='Сокращенный список', callback_data='short_lessons')]])
 
 async def data_pair(teacher):
-    all_pair = await get_data_pair(get_teachers_initials(teacher))
+    all_pair = await get_data_pair(teacher)
     keyboard = InlineKeyboardBuilder()
     for pair in all_pair:
-        keyboard.add(InlineKeyboardButton(text=pair.date, callback_data=f'pair_{pair.id}'))
+        keyboard.add(InlineKeyboardButton(text=f'{pair.date}', callback_data=f'pair_{pair.id}'))
     keyboard.add(InlineKeyboardButton(text='Вернуться назад', callback_data='to_main'))
     return keyboard.adjust(3).as_markup()
 

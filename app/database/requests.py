@@ -1993,6 +1993,14 @@ async def get_rating_for_current_student(tg_id):
             if rank.student_id == student.id:
                 return rank
 
+async def set_new_rating(tg_id):
+    async with async_session() as session:
+        student = await get_student(tg_id)
+        ranked = await session.scalars(select(Rang).order_by(Rang.mmr.desc()))
+        for rank in ranked:
+            rank.mmr += 100
+        await session.commit()
+
 async def get_data_pair(teacher_name):
     async with async_session() as session:
         return await session.scalars(select(ListOfPresent).filter(ListOfPresent.Teacher == teacher_name))

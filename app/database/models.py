@@ -83,7 +83,7 @@ class ListOfPresent(Base):
     __tablename__ = 'ListOfPresents'
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[Date] = mapped_column(Date, default=datetime.now().date())
-    Number_pair = mapped_column(Text(6), nullable=True)
+    Number_pair = mapped_column(String(7), nullable=True)
     Teacher = mapped_column(String(100), nullable=True)
     Pair = mapped_column(Text, nullable=True)
     group = mapped_column(Text, nullable=True)
