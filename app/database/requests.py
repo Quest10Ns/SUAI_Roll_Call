@@ -1960,3 +1960,10 @@ async def set_data_for_listOfPresent(tg_id, code):
         list_of_present = ListOfPresent(Teacher=teacher.initials, Pair = matches[0], group = groups ,code = code, status = 'open', teacher_id=teacher.id)
         session.add(list_of_present)
         await session.commit()
+
+async def forced_closure():
+    async with async_session() as session:
+        lessons = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
+        async for lesson in lessons:
+            lesson.status = 'close'
+        await session.commit()
