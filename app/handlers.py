@@ -3564,6 +3564,9 @@ async def process_share_location(message: types.location):
         #             present.students = students
         #             await session.commit()
         #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+        #             rank = await rq.get_rating_for_current_student(message.from_user.id)
+        #             rank.mmr += 100
+        #             await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
         #             break
         # elif is_inside_polygon(latitude, longitude, BM):
         #     for present in open_list_of_presents:
@@ -3576,6 +3579,9 @@ async def process_share_location(message: types.location):
         #             present.students = students
         #             await session.commit()
         #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+        #             rank = await rq.get_rating_for_current_student(message.from_user.id)
+        #             rank.mmr += 100
+        #             await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
         #             break
         else:
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
