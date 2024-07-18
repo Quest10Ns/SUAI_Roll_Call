@@ -208,9 +208,9 @@ async def set_data_for_listOfPresent(tg_id, code):
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         now = datetime.now().time()
-        start_timeFirst = time(0, 15)
-        end_timeFirst = time(23, 50)
-        start_timeSecond = time(22, 10)
+        start_timeFirst = time(9, 15)
+        end_timeFirst = time(9, 40)
+        start_timeSecond = time(0, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
@@ -2035,12 +2035,22 @@ async def get_rating_for_current_student(tg_id):
             if rank.student_id == student.id:
                 return rank
 
+async def get_rating_for_current_student_personal(tg_id):
+    async with async_session() as session:
+        student = await get_student(tg_id)
+        ranked = await session.scalars(select(Rang).order_by(Rang.mmr.desc()))
+        counter = 0
+        for rank in ranked:
+            counter+=1
+            if rank.student_id == student.id:
+                return counter
 async def set_new_rating(tg_id):
     async with async_session() as session:
         student = await get_student(tg_id)
         ranked = await session.scalars(select(Rang).order_by(Rang.mmr.desc()))
         for rank in ranked:
-            rank.mmr += 100
+            if rank.student_id == student.id:
+                rank.mmr += 100
         await session.commit()
 
 async def get_data_pair(teacher_name):

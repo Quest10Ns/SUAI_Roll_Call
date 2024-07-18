@@ -409,9 +409,9 @@ async def check_pair_and_send_message(bot: Bot):
     async with async_session() as session:
         today = datetime.now().weekday()
         now = datetime.now().time()
-        start_timeFirst = time(0, 15)
-        end_timeFirst = time(23, 50)
-        start_timeSecond = time(22, 10)
+        start_timeFirst = time(9, 15)
+        end_timeFirst = time(9, 40)
+        start_timeSecond = time(0, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
@@ -743,9 +743,9 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         today = datetime.now().weekday()
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
-        start_timeFirst = time(0, 15)
-        end_timeFirst = time(23, 50)
-        start_timeSecond = time(22, 10)
+        start_timeFirst = time(9, 15)
+        end_timeFirst = time(9, 40)
+        start_timeSecond = time(0, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
@@ -2092,9 +2092,9 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         today = datetime.now().weekday()
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
-        start_timeFirst = time(0, 15)
-        end_timeFirst = time(23, 50)
-        start_timeSecond = time(22, 10)
+        start_timeFirst = time(9, 15)
+        end_timeFirst = time(9, 40)
+        start_timeSecond = time(0, 10)
         end_timeSecond = time(23, 50)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
@@ -3647,7 +3647,7 @@ async def current_data_pair(callback: types.CallbackQuery):
 @router.callback_query(F.data.startswith('numPair_'))
 async def current_info_for_pair(callback: types.CallbackQuery):
     info = await rq.get_info_for_pair(int(callback.data.split('_')[1]))
-    result = f'{info.group}:\n{info.students}'
+    result = f'{info.Pair}\nГруппы: {info.group}:\n{info.students}'
     await callback.message.answer(result, reply_markup=kb.main_buttuns_for_teachers)
 
 @router.callback_query(F.data == 'full_lessons')
@@ -3695,7 +3695,8 @@ async def check_lessons(message: types.Message):
 @router.message(F.text == '😎Мое место')
 async def check_lessons(message: types.Message):
     rank = await rq.get_rating_for_current_student(message.from_user.id)
-    await message.answer(f'Ваше место в рейтинге:\n{rank.id}  {rank.student_name}  {rank.mmr}')
+    pos = await rq.get_rating_for_current_student_personal(message.from_user.id)
+    await message.answer(f'Ваше место в рейтинге:\n{pos}  {rank.student_name}  {rank.mmr}')
 
 
 
