@@ -208,7 +208,7 @@ async def set_data_for_listOfPresent(tg_id, code):
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         now = datetime.now().time()
-        start_timeFirst = time(9, 15)
+        start_timeFirst = time(0, 15)
         end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)

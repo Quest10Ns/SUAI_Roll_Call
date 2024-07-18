@@ -39,7 +39,7 @@ async def main():
     dp = Dispatcher()
     dp.include_router(router)
     scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
-    scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=22, minute=56, kwargs={'bot': bot})
+    scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=0, minute=53, kwargs={'bot': bot})
     scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=10, minute=55, kwargs={'bot': bot})
     scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=12, minute=45, kwargs={'bot': bot})
     scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=19, minute=36, kwargs={'bot': bot})

@@ -374,7 +374,7 @@ async def edit_back(callback: types.CallbackQuery):
 async def main_schedule(message: types.Message):
     if await rq.get_user_status(message.from_user.id) == 'Студент':
         schedule = await rq.get_schedule(message.from_user.id)
-        await message.answer(
+        schedule_string = (
             f'Ваше расписание: \n\n'
             f'Понедельник: \n\n{schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
             f'Вторник: \n\n{schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
@@ -386,7 +386,7 @@ async def main_schedule(message: types.Message):
         )
     else:
         schedule = await rq.get_schedule_for_certain_teacher(message.from_user.id)
-        await message.answer(
+        schedule_string = (
             f'Ваше расписание: \n\n'
             f'Понедельник: \n\n{schedule.Monday if schedule.Monday else " Пар нет \n"}\n'
             f'Вторник: \n\n{schedule.Tuesday if schedule.Tuesday else " Пар нет \n"}\n'
@@ -394,14 +394,22 @@ async def main_schedule(message: types.Message):
             f'Четверг: \n\n{schedule.Thursday if schedule.Thursday else " Пар нет \n"}\n'
             f'Пятница: \n\n{schedule.Friday if schedule.Friday else " Пар нет \n"}\n'
             f'Суббота: \n\n{schedule.Saturday if schedule.Saturday else " Пар нет \n"}\n'
-            f'Ваше ФИО: {await rq.get_teachers_initials(message.from_user.id)}')
+            f'Ваше ФИО: {await rq.get_teachers_initials(message.from_user.id)}'
+        )
+    if len(schedule_string) > 4096:
+        messages = [schedule_string[i:i+4096] for i in range(0, len(schedule_string), 4096)]
+        for msg in messages:
+            await message.answer(msg)
+    else:
+        await message.answer(schedule_string)
+
 
 
 async def check_pair_and_send_message(bot: Bot):
     async with async_session() as session:
         today = datetime.now().weekday()
         now = datetime.now().time()
-        start_timeFirst = time(9, 15)
+        start_timeFirst = time(0, 15)
         end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)
@@ -735,7 +743,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         today = datetime.now().weekday()
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
-        start_timeFirst = time(9, 15)
+        start_timeFirst = time(0, 15)
         end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)
@@ -2084,7 +2092,7 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         today = datetime.now().weekday()
         today1 = date.fromtimestamp(tim.time())
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
-        start_timeFirst = time(9, 15)
+        start_timeFirst = time(0, 15)
         end_timeFirst = time(23, 50)
         start_timeSecond = time(22, 10)
         end_timeSecond = time(23, 50)
