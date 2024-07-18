@@ -70,7 +70,8 @@ async def data_pair(teacher):
     all_pair = await get_data_pair(teacher)
     keyboard = InlineKeyboardBuilder()
     for pair in all_pair:
-        keyboard.add(InlineKeyboardButton(text=f'{pair.date}', callback_data=f'pair_{pair.id}'))
+        if pair.date is not None:
+            keyboard.add(InlineKeyboardButton(text=f'{pair.date}', callback_data=f'pair_{pair.id}'))
     keyboard.add(InlineKeyboardButton(text='Вернуться назад', callback_data='to_main'))
     return keyboard.adjust(3).as_markup()
 
