@@ -15,8 +15,7 @@ import app.database.add_schedule__to_db_for_students as ass
 from dotenv import load_dotenv
 from aiogram.types import location
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, \
-    ListOfPresent
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, ListOfPresent, Rang
 from sqlalchemy import select, update, delete, and_
 
 router = Router()
@@ -260,6 +259,10 @@ async def register_group(message: types.Message, state: FSMContext):
                 data = await state.get_data()
                 await message.answer(
                     f'Вы успешно зарегистрированы как студент. \n Ваше ФИО: {data["initials"]} \n Ваша учебная группа: {data["group"]}',
+                    reply_markup=kb.edit_button)
+                await rq.set_people_in_rang_system(message.from_user.id)
+                await message.reply(
+                    f'Так же вы были добавлены в ранговую систему, Вам были начислены стартовые 100 очков',
                     reply_markup=kb.edit_button)
                 await state.clear()
         else:
@@ -3546,6 +3549,9 @@ async def process_share_location(message: types.location):
                     present.students = students
                     await session.commit()
                     await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    rank = await rq.get_rating_for_current_student(message.from_user.id)
+                    rank.mmr += 100
+                    await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
                     break
         # elif is_inside_polygon(latitude, longitude, Lensa):
         #     for present in open_list_of_presents:
@@ -3643,3 +3649,28 @@ async def check_short_lessons(callback: types.CallbackQuery):
     await callback.message.answer(result)
     await callback.message.reply('Если вы не увидели посещенную вами пару, то списки посещения обновлются каждый день в 22:00',
                          reply_markup=kb.main_buttuns_for_student)
+
+@router.message(F.text == '🏆Рейтинг')
+async def check_lessons(message: types.Message):
+    async with async_session() as session:
+        ranks = await session.scalars(select(Rang).order_by(Rang.mmr.desc()).limit(20))
+        ranked_list = []
+        for rank in ranks:
+            rankOnStep = [rank.student_name, rank.mmr]
+            ranked_list.append(rankOnStep)
+        ranked_string = '\n'.join([f'{i + 1}. {rank[0]} - {rank[1]}' for i, rank in enumerate(ranked_list)])
+        await message.answer(f'Топ 15:\n{ranked_string}')
+
+
+@router.message(F.text == '😎Мое место')
+async def check_lessons(message: types.Message):
+    rank = await rq.get_rating_for_current_student(message.from_user.id)
+    await message.answer(f'Ваше место в рейтинге:\n{rank.id}  {rank.student_name}  {rank.mmr}')
+
+
+
+
+
+
+
+

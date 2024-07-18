@@ -1,7 +1,6 @@
 import os
 from app.database.models import async_session
-from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, \
-    ListOfPresent
+from app.database.models import User, Teacher, Student, ScheduleForStudent, ScheduleForTeacher, MainScheduleForTeacher, Rang, ListOfPresent
 from sqlalchemy import select, update, delete
 from datetime import datetime, time, date
 import time as tim
@@ -1976,3 +1975,23 @@ async def check_lessons(student_group, student_name):
             if (student_name in lesson.students) and (student_group in lesson.group):
                 student_lessons.append([lesson.date, lesson.Pair])
         return student_lessons
+
+async def set_people_in_rang_system(tg_id):
+    async with  async_session() as session:
+        student = await get_student(tg_id)
+        ranked = await session.scalar(select(Rang).filter(Rang.student_id == student.id))
+        if not ranked:
+            set_rang = Rang(student_id=student.id, student_name=student.initials, mmr=100)
+            session.add(set_rang)
+        await session.commit()
+
+async def get_rating_for_current_student(tg_id):
+    async with async_session() as session:
+        student = await get_student(tg_id)
+        ranked = await session.scalars(select(Rang).order_by(Rang.mmr.desc()))
+        for rank in ranked:
+            if rank.student_id == student.id:
+                return rank
+
+
+

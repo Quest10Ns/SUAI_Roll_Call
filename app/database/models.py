@@ -22,15 +22,13 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id = mapped_column(BigInteger)
     status = mapped_column(String(15), nullable=True)
-    # initials = mapped_column(String(150),nullable=True)
-    # group_or_department = mapped_column(String(7), nullable=True)
 
 
 class Teacher(Base):
     __tablename__ = 'Teachers'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
+    initials = mapped_column(String(150), nullable=True)
     department = mapped_column(String(4), nullable=True)
     chat_id = mapped_column(BigInteger)
     user_id = mapped_column(ForeignKey('Users.id'))
@@ -40,7 +38,7 @@ class Student(Base):
     __tablename__ = 'Students'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    initials = mapped_column(String(150), nullable=True)  # уникальность фио студента
+    initials = mapped_column(String(150), nullable=True)
     group = mapped_column(String(13), nullable=True)
     chat_id = mapped_column(BigInteger)
     user_id = mapped_column(ForeignKey('Users.id'))
@@ -92,6 +90,16 @@ class ListOfPresent(Base):
     code = mapped_column(String(15), nullable=True)
     status = mapped_column(String(8), nullable=True)
     teacher_id = mapped_column(ForeignKey('Teachers.id'))
+
+
+class Rang(Base):
+    __tablename__ = 'Rangs'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id = mapped_column(ForeignKey('Students.id'))
+    student_name = mapped_column(String(150), nullable=True)
+    mmr = mapped_column(Integer, nullable = True)
+
+
 
 async def async_main():
     async with engine.begin() as conn:
