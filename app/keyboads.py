@@ -5,6 +5,7 @@ from app.database.requests import get_data_pair, get_teachers_initials, get_numb
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+import datetime
 
 start_buttons = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Преподаватель'), KeyboardButton(text='Студент')]],
                                     resize_keyboard=True)
@@ -67,16 +68,20 @@ short_and_full_lessons = InlineKeyboardMarkup(inline_keyboard=[
      InlineKeyboardButton(text='Сокращенный список', callback_data='short_lessons')]])
 
 async def data_pair(teacher):
-    all_pair = await get_data_pair(teacher)
+    all_pair = await get_data_pair(get_teachers_initials(teacher))
     keyboard = InlineKeyboardBuilder()
+    all_date_pair = []
     for pair in all_pair:
-        if pair.date is not None:
-            keyboard.add(InlineKeyboardButton(text=f'{pair.date}', callback_data=f'pair_{pair.id}'))
+        if pair.date not in all_date_pair:
+            all_date_pair.append(pair.date)
+    for date in all_date_pair:
+        keyboard.add(InlineKeyboardButton(text=date, callback_data=f'pair_{date}'))
     keyboard.add(InlineKeyboardButton(text='Вернуться назад', callback_data='to_main'))
     return keyboard.adjust(3).as_markup()
 
-async def number_pair(data_id):
-    all_number_pair = await get_number_pair_by_data(data_id)
+async def number_pair(data_id, teacher):
+    date_object = datetime.datetime.strptime(data_id, '%Y-%m-%d').date()
+    all_number_pair = await get_number_pair_by_data(date_object, teacher)
     keyboard = InlineKeyboardBuilder()
     for num_pair in all_number_pair:
         keyboard.add(InlineKeyboardButton(text=num_pair.Number_pair, callback_data=f'numPair_{num_pair.id}'))
