@@ -7,6 +7,7 @@ from app.handlers import router
 from app.database.models import async_main
 from dotenv import load_dotenv
 from app import handlers
+from app.database import requests
 from datetime import datetime, timedelta
 import pytz
 from app.database.add_schedule__to_db_for_students import set_schedule_for_students
@@ -45,7 +46,8 @@ async def main():
     scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=16, minute=25, kwargs={'bot': bot})
     scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=18, minute=15, kwargs={'bot': bot})
     scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=19, minute=55, kwargs={'bot': bot})
-    scheduler.start()
+    scheduler.add_job(handlers.check_pair_and_send_message, trigger='cron', hour=19, minute=55, kwargs={'bot': bot})
+    scheduler.add_job(requests.forced_closure, trigger='cron', hour=14, minute=16)
     await dp.start_polling(bot)
 
 
