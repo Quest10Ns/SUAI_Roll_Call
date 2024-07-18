@@ -1993,5 +1993,14 @@ async def get_rating_for_current_student(tg_id):
             if rank.student_id == student.id:
                 return rank
 
+async def get_data_pair(teacher_name):
+    async with async_session() as session:
+        return await session.scalars(select(ListOfPresent).filter(ListOfPresent.Teacher == teacher_name))
 
+async def get_number_pair_by_data(data_id):
+    async with async_session() as session:
+        return await session.scalars(select(ListOfPresent).filter(ListOfPresent.id == data_id))
 
+async def get_info_for_pair(data_id):
+    async with async_session() as session:
+        return await session.scalar(select(ListOfPresent).filter(ListOfPresent.id == data_id))
