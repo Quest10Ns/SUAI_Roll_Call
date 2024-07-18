@@ -3646,7 +3646,7 @@ async def current_data_pair(callback: types.CallbackQuery):
 
 @router.callback_query(F.data.startswith('numPair_'))
 async def current_info_for_pair(callback: types.CallbackQuery):
-    info = await rq.get_number_pair_by_data(int(callback.data.split('_')[1]))
+    info = await rq.get_info_for_pair(int(callback.data.split('_')[1]))
     result = f'{info.group}:\n{info.students}'
     await callback.message.answer(result, reply_markup=kb.main_buttuns_for_teachers)
 
