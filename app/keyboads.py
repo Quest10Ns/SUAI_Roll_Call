@@ -52,3 +52,7 @@ accept_roll = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Подтвердить присутствие', callback_data='accept__roll')]])
 
 share_location = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='📌 Поделиться геопозицией', request_location=True)]], resize_keyboard=True)
+
+add_or_delete = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='➕', callback_data='add'),
+     InlineKeyboardButton(text='➖', callback_data='dalete')]])
