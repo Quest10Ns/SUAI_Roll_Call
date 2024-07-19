@@ -3700,4 +3700,4 @@ async def check_lessons(message: types.Message):
 
 @router.message(F.data == 'to_main')
 async def to_main(callback: types.CallbackQuery):
-    await callback.message.edit_text('Вы вернулисб на главную', reply_markup=kb.main_buttuns_for_teachers)
+    await callback.message.answer('Вы вернулись на главную', reply_markup=kb.main_buttuns_for_teachers)
