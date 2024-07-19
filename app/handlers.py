@@ -411,8 +411,8 @@ async def check_pair_and_send_message(bot: Bot):
         now = datetime.now().time()
         start_timeFirst = time(9, 15)
         end_timeFirst = time(9, 40)
-        start_timeSecond = time(0, 10)
-        end_timeSecond = time(23, 50)
+        start_timeSecond = time(10, 55)
+        end_timeSecond = time(11, 20)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -745,8 +745,8 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
         end_timeFirst = time(9, 40)
-        start_timeSecond = time(0, 10)
-        end_timeSecond = time(23, 50)
+        start_timeSecond = time(10, 55)
+        end_timeSecond = time(11, 20)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -2094,8 +2094,8 @@ async def pair_accepted(callback: types.CallbackQuery, bot: Bot):
         current_week = (date(today1.year, today1.month, today1.day).isocalendar()[1]) % 2
         start_timeFirst = time(9, 15)
         end_timeFirst = time(9, 40)
-        start_timeSecond = time(0, 10)
-        end_timeSecond = time(23, 50)
+        start_timeSecond = time(10, 55)
+        end_timeSecond = time(11, 20)
         start_timeThird = time(12, 45)
         end_timeThird = time(13, 0)
         start_timeFourth = time(14, 45)
@@ -3535,16 +3535,16 @@ async def process_share_location(message: types.location):
     async with async_session() as session:
         latitude = location.latitude
         longitude = location.longitude
-        # Gasta = [(59.858010040200654, 30.326201291447138), (59.858064005983664, 30.329355569248644),
-        #          (59.85650975627057, 30.329205365543828), (59.85671483505771, 30.326673360233766)]
-        # Lensa = [(59.8562561044372, 30.329784722691038), (59.85623451695752, 30.33173737085389),
-        #          (59.85519830140582, 30.329956384067984), (59.855133536858695, 30.33184465921447)]
-        # BM = [(59.930930489256866, 30.29282265918946), (59.93179203162438, 30.296513378793964),
-        #       (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
+        Gasta = [(59.858010040200654, 30.326201291447138), (59.858064005983664, 30.329355569248644),
+                 (59.85650975627057, 30.329205365543828), (59.85671483505771, 30.326673360233766)]
+        Lensa = [(59.8562561044372, 30.329784722691038), (59.85623451695752, 30.33173737085389),
+                 (59.85519830140582, 30.329956384067984), (59.855133536858695, 30.33184465921447)]
+        BM = [(59.930930489256866, 30.29282265918946), (59.93179203162438, 30.296513378793964),
+              (59.92858267235224, 30.295311749155285), (59.93002584560677, 30.298487484628925)]
         student = await rq.get_student(message.from_user.id)
         open_list_of_presents = await session.scalars(select(ListOfPresent).filter(ListOfPresent.status == 'open'))
-        Gasta = [(59.83838293879409, 30.48435492476775), (59.84842554032725, 30.499394938317884),
-                 (59.82435066905143, 30.51281974665993), (59.836967483643015, 30.54097221248025)]
+        # Gasta = [(59.83838293879409, 30.48435492476775), (59.84842554032725, 30.499394938317884),
+        #          (59.82435066905143, 30.51281974665993), (59.836967483643015, 30.54097221248025)]
         if is_inside_polygon(latitude, longitude, Gasta):
             for present in open_list_of_presents:
                 if student.group in present.group:
@@ -3560,36 +3560,36 @@ async def process_share_location(message: types.location):
                     await message.reply(f'Вам начисленно 100 рейтинговых очков, сейчас у Вас {rank.mmr}', reply_markup=kb.main_buttuns_for_student)
                     await session.commit()
                     break
-        # elif is_inside_polygon(latitude, longitude, Lensa):
-        #     for present in open_list_of_presents:
-        #         if student.group in present.group:
-        #             students = present.students
-        #             if students:
-        #                 students += f", {student.initials}"
-        #             else:
-        #                 students = student.initials
-        #             present.students = students
-        #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
-        #             rank = await rq.get_rating_for_current_student(message.from_user.id)
-        #             rank.mmr += 100
-        #             await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
-        #             await session.commit()
-        #             break
-        # elif is_inside_polygon(latitude, longitude, BM):
-        #     for present in open_list_of_presents:
-        #         if student.group in present.group:
-        #             students = present.students
-        #             if students:
-        #                 students += f", {student.initials}"
-        #             else:
-        #                 students = student.initials
-        #             present.students = students
-        #             await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
-        #             rank = await rq.get_rating_for_current_student(message.from_user.id)
-        #             rank.mmr += 100
-        #             await message.reply('Вам начисленно 100 рейтинговых очков', reply_markup=kb.main_buttuns_for_student)
-        #             await session.commit()
-        #             break
+        elif is_inside_polygon(latitude, longitude, Lensa):
+            for present in open_list_of_presents:
+                if student.group in present.group:
+                    students = present.students
+                    if students:
+                        students += f", {student.initials}"
+                    else:
+                        students = student.initials
+                    present.students = students
+                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    await rq.set_new_rating(message.from_user.id)
+                    rank = await rq.get_rating_for_current_student(message.from_user.id)
+                    await message.reply(f'Вам начисленно 100 рейтинговых очков, сейчас у Вас {rank.mmr}', reply_markup=kb.main_buttuns_for_student)
+                    await session.commit()
+                    break
+        elif is_inside_polygon(latitude, longitude, BM):
+            for present in open_list_of_presents:
+                if student.group in present.group:
+                    students = present.students
+                    if students:
+                        students += f", {student.initials}"
+                    else:
+                        students = student.initials
+                    present.students = students
+                    await message.answer('Вы подтвердили свое присутствие', reply_markup=kb.main_buttuns_for_student)
+                    await rq.set_new_rating(message.from_user.id)
+                    rank = await rq.get_rating_for_current_student(message.from_user.id)
+                    await message.reply(f'Вам начисленно 100 рейтинговых очков, сейчас у Вас {rank.mmr}', reply_markup=kb.main_buttuns_for_student)
+                    await session.commit()
+                    break
         else:
             await message.answer('Вы находитесь не в ГУАПЕ', reply_markup=kb.main_buttuns_for_student)
 
