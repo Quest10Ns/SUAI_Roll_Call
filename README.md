@@ -74,7 +74,7 @@ found in the `requirements.txt` file. To install them, follow these steps:
 
 8. Run the code from ```main.py``` and check that everything is working as expected.
 
-# 📋 General Rules of Operation
+# 📋 General Rules of Operation (for the training practice team)
 
 1. Work in separate branches.
 2. All changes to the master branch are made through me (Daniil).
