@@ -86,7 +86,6 @@ found in the `requirements.txt` file. To install them, follow these steps:
    yourself or just don't want to, don't mark yourself as working on it.
 7. Describe all commits clearly so that it's clear what was done and in case of need, you can roll back to the necessary
    version.
-8. **Use English as much as possible.**
 
 # Happy Pythoning! ❤️🐍
 
